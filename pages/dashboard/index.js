@@ -1,0 +1,72 @@
+import styles from '../../styles/custom.module.css'
+import { useSession, signIn, signOut } from "next-auth/react"
+import dbConnect from '../../lib/Mongo'
+
+export default function Home() {
+  const { data: session, status } = useSession()
+  const isAdmin = true;
+  if (status === "loading") {
+    return (
+      null
+    )
+  }
+  if(session){
+    return (
+    <div className={styles.container}>
+        <main className={styles.main}>
+        <h1 className={styles.title}>
+            Dashboard
+        </h1>
+
+        <div className={styles.row}>
+            <a href="/accounts" className={styles.card}>
+            <h2>All Accounts &rarr;</h2>
+            <p>View a list of our client's calendars.</p>
+            </a>
+            <a href="/dashboard/admins" className={styles.card}>
+            <h2>Manage Administrators &rarr;</h2>
+            <p>Manage who has access to the dashboard</p>
+            </a>
+        </div>
+
+        <div className={styles.row}>
+            <a href="/dashboard/manage" className={styles.card}>
+            <h2>Manage Accounts &rarr;</h2>
+            <p>Add, Edit or Delete accounts in the database.</p>
+            </a>
+
+            
+
+            <a href="/dashboard/logs" className={styles.card}>
+            <h2>View Logs &rarr;</h2>
+            <p>View logs of all Calendar event changes.</p>
+            </a>
+        </div>
+        </main>
+    </div>
+    )
+  }
+  else{
+    return (
+      <div>
+        <main className={styles.main}>
+          <h1 className={styles.title}>
+              Access Denied!
+          </h1>
+          <div className={styles.grid}>
+              <h2>Please Sign in using your company email to continue. &rarr;</h2>
+          </div>        
+        </main>
+      </div>
+    )}
+}
+
+export async function getServerSideProps(params) {
+    /* Can remove this when you get mongodb set up */
+
+    return {
+      props: {
+        
+      },
+    }
+  }
