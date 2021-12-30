@@ -1,19 +1,18 @@
 import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
-import React, { useEffect, useRef } from "react";
 import Mongo from '../../lib/Mongo'
 import { useState } from 'react';
 import AccountModal from '../../components/AccountModal'
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import toast, { Toaster } from 'react-hot-toast';
-import AccountConfirm from '../../components/NewAccountModal';
+import DeleteModal from '../../components/DialogModal';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { IconButton, Tooltip } from '@material-ui/core';
 import Input from '@mui/material/Input';
-import EditAccountModal from '../../components/EditAccountModal';
+import SaveModal from '../../components/DialogModal';
 
 export default function manage({accounts}) {
   const [showAdd, setShowAdd] = useState(false);
@@ -26,7 +25,14 @@ export default function manage({accounts}) {
   const [showConfirm, setConfirm] = useState(false);
   const [payload, setPayload] = useState(null)
   const { data: session, status } = useSession()
-
+  const confirmOptions = {
+    path: '/api/accounts',
+    method: 'DELETE',
+  }
+  const saveOptions = {
+    path: '/api/accounts',
+    method: 'PUT',
+  }
   //Opens the add Account component
   const onAddClick = () => {
     setShowAdd(true);
@@ -133,26 +139,9 @@ export default function manage({accounts}) {
           friendlyName: AccountName,
           calendarID: AccountEmail
         }
-        setPayload({
-          newAcc: updatedDetails,
-          oldAcc: oldAccount,
-        })
+        setPayload(updatedDetails)
         setSaveChanges(true)
     }
-    
-    /*
-    const req = fetch('/api/accounts', {
-      method: 'UPDATE',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: {
-        oldAccount:JSON.stringify(oldAccount),
-        newAccount:JSON.stringify(newAcc)
-      },
-      });*/
-
   }
 
 
@@ -186,9 +175,13 @@ export default function manage({accounts}) {
                 </IconButton>
               </Tooltip>
             </div>   
-            <AccountConfirm show={showConfirm} onClose={()=>setConfirm(false)} payload={payload}/>        
+            <DeleteModal show={showConfirm} onClose={()=>setConfirm(false)} payload={payload} options={confirmOptions} title={"Delete selected."}>
+              Are you sure? This action cannot be undone.
+            </DeleteModal> 
             <AccountModal  onClose={() => setShowAdd(false)} show={showAdd}/>
-            <EditAccountModal show={SaveChanges} onClose={()=>setSaveChanges(false)} payload={payload}/>
+            <SaveModal show={SaveChanges} onClose={()=>setSaveChanges(false)} payload={payload} options={saveOptions} title={"Save changes?"}>
+              The account will be overwritten. 
+            </SaveModal>
             <div className={styles.yscroll, styles.accTable}>
             <table class="table table-bordered table-striped mb-0">
                 <thead>

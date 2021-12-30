@@ -18,22 +18,17 @@ const FormModal = ({ show, onClose, editing, payload}) => {
     };    
 
     const onSubmit =  data => {
-      console.log(data)
       var form = document.getElementById("eventForm");
       form.reset();
-      console.log(form.data);
       onClose();  
-      
     };
     const onTrashClick = () => {
       console.log("Trash Cicked!")
       setConfirm(true);
-      console.log(confirmModal)
     };
     const onEditClick = () => {
       console.log("Edit Cicked!")
       setEditMode(true);
-      console.log()
     };
 
     setValue("date",payload.event.date);

@@ -1,4 +1,3 @@
-import toast from 'react-hot-toast';
 import Admin from '../../lib/models/admin.model'
 
 const createAccount = async(req,res) => {
@@ -8,8 +7,8 @@ const createAccount = async(req,res) => {
         email: req.body.email,
     });
     try{
-        Admin.find({email:req.body.email}, (data)=>{
-            if(data!=null)
+        Admin.find({email:req.body.email}, (error,data)=>{
+            if(data.length!=0 || error)
                 res.status(500).send({
                     success:false,
                     message:"User already exists."
@@ -51,14 +50,14 @@ const findAllAccounts = async(req,res) => {
 
 const deleteAccount = async(req,res) => {
     const toDelete = req.body;
-    console.log(toDelete.length)
-    
-   Admin.deleteMany({accountID:{$in:toDelete}}, (error,data)=>{
+    console.log(toDelete)
+   Admin.deleteMany({email:{$in:toDelete}}, (error,data)=>{
+       console.log(data)
         if(error){
             res.status(500).send({
                 success:false,
                 message:
-                  error.message || "Some Some error ocurred while deleting products."
+                  error.message || "Some Some error ocurred while deleting account(s)."
               });
         }
         else{
@@ -70,30 +69,9 @@ const deleteAccount = async(req,res) => {
    })
 }
 
-const updateAccount = async(req,res) => {
-   const filter = { accountID: req.body.accountID };
-   const update = { friendlyName:req.body.friendlyName, calendarID:req.body.calendarID };
-   Admin.findOneAndUpdate(filter, update, (error,data)=>{
-        if(error){
-            res.status(500).send({
-                success:false,
-                message:
-                  error.message || "Some Some error ocurred while updating the account."
-              });
-        }
-        else{
-            res.send({
-                success: true,
-                message: "Account updated successfully!"
-            });
-        }
-   })
-}
-    
 
 const methods = {
     GET: findAllAccounts,
-    PUT: updateAccount,
     POST: createAccount,
     DELETE: deleteAccount,
 }

@@ -66,23 +66,19 @@ export default function BigCalendar(){
     }
     
     const onSelectSlot = data => {
-      setEditMode(true);
-      try{
-        const momentStart = moment(data.start), 
+      const momentStart = moment(data.start), 
             momentEnd = moment(data.end);
-        setNewEvent({
-            event:
-            {
-              date: momentStart.format("YYYY-MM-DD"),
-              start: momentStart.format("HH:mm"),
-              end: momentEnd.format("HH:mm"),
-            }
-          })
-        setShowModal(true);
+      setEditMode(true);
+      const details = {
+        event:
+        {
+          date: momentStart.format("YYYY-MM-DD"),
+          start: momentStart.format("HH:mm"),
+          end: momentEnd.format("HH:mm"),
+        }
       }
-      catch (err){
-        console.log(err)
-      }
+      setNewEvent(details)
+      setShowModal(true);
     }
     //Return the calendar if events are not empty, else 
     return (

@@ -1,27 +1,28 @@
-import Account from '../../lib/models/account.model'
+import Log from '../../lib/models/log.model'
 
 const createAccount = async(req,res) => {
     console.log("Creating Account")
-    var account = new Account({
-        accountID: req.body.accountID,
-        friendlyName: req.body.friendlyName,        
-        calendarID: req.body.calendarID
-    });
+    var log = new Log({
+        type: req.body.type,
+        data: {
+            oldEvent: {
+                accountID:req.body.data.oldEvent.accountID,
+                friendlyName:req.body.data.oldEvent.friendlyName,
+                calendarID:req.body.data.oldEvent.calendarID,
+            },
+            newEvent: {
+                accountID:req.body.data.newEvent.accountID,
+                friendlyName:req.body.data.newEvent.friendlyName,
+                calendarID:req.body.data.newEvent.calendarID,
+            },
+            }
+        });
     try{
-        console.log(account)
-        Account.find({accountID:account.accountID}, (error, data)=>{
-            if(data.length!=0 || error)
-                res.status(500).send({
-                    success:false,
-                    message: error || "Account number exists already, please use another one."
-                })
-            else
-                account.save(account, (data) => {
-                    res.status(200).send({
-                        success: true,
-                        data: data,
-                    })
-                })
+        log.save(log,  (error,data)=>{
+            res.status(200).send({
+                success: true,
+                data: data,
+            })
         })
     } catch (error) {
         res.status(400).send({
@@ -35,7 +36,7 @@ const findAllAccounts = async(req,res) => {
     console.log("Finding Accounts")
     var condition = {};
     try {
-        Account.find(condition,(error,data) => {
+        Log.find(condition,(error,data) => {
             res.status(200).send({
                 success: true,
                 data: data,
@@ -54,7 +55,7 @@ const deleteAccount = async(req,res) => {
     const toDelete = req.body;
     console.log(toDelete.length)
     
-   Account.deleteMany({accountID:{$in:toDelete}}, (error,data)=>{
+   Log.deleteMany({accountID:{$in:toDelete}}, (error,data)=>{
         if(error){
             res.status(500).send({
                 success:false,
@@ -74,7 +75,7 @@ const deleteAccount = async(req,res) => {
 const updateAccount = async(req,res) => {
    const filter = { accountID: req.body.accountID };
    const update = { friendlyName:req.body.friendlyName, calendarID:req.body.calendarID };
-   Account.findOneAndUpdate(filter, update, (error,data)=>{
+   Log.findOneAndUpdate(filter, update, (error,data)=>{
         if(error){
             res.status(500).send({
                 success:false,

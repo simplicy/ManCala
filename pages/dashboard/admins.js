@@ -1,20 +1,23 @@
 import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
-import React, { useEffect, useRef } from "react";
 import Mongo from '../../lib/Mongo'
 import { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import AccountConfirm from '../../components/NewAccountModal';
+import AdminModal from '../../components/AdminModal';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { IconButton, Tooltip } from '@material-ui/core';
-import AdminModal from '../../components/AdminModal';
+import DialogModal from '../../components/DialogModal'
 
-export default function manage({accounts}) {
+export default function admins({accounts}) {
   const [showAdd, setShowAdd] = useState(false);
   const [showConfirm, setConfirm] = useState(false);
-  const [payload, setPayload] = useState(null)
-  const { data: session, status } = useSession()
+  const [payload, setPayload] = useState(null);
+  const { data: session, status } = useSession();
+  const confirmOptions = {
+    path: '/api/admins',
+    method: 'DELETE',
+  }
 
   //Opens the add Account component
   const onAddClick = () => {
@@ -30,7 +33,7 @@ export default function manage({accounts}) {
       var toDelete = [e.length]
       for(var n = 0; n<e.length; n++){
         if(e[n].id != "checkAll"){
-          toDelete.push(document.getElementsByName(e[n].id)[0].innerHTML)  
+          toDelete.push(document.getElementsByName(e[n].id)[1].innerHTML)  
         }     
       }
       setPayload(toDelete)
@@ -89,8 +92,9 @@ export default function manage({accounts}) {
                 </IconButton>
               </Tooltip>
             </div>   
-
-            <AccountConfirm show={showConfirm} onClose={()=>setConfirm(false)} payload={payload}/>        
+            <DialogModal show={showConfirm} onClose={()=>setConfirm(false)} payload={payload} options={confirmOptions} title={"Delete selected."}>
+              Are you sure? This action cannot be undone.
+            </DialogModal>            
             <AdminModal  onClose={() => setShowAdd(false)} show={showAdd}/>
 
             <div className={styles.yscroll, styles.accTable}>
@@ -110,14 +114,14 @@ export default function manage({accounts}) {
                         <td key="checkbox" id={index}>
                           <input id={index} className={styles.card}  type="checkbox" />
                         </td>
-                        <td key="friendlyName" id={index}>
+                        <td key="name" id={index}>
                           <div className={styles.rowItem}>
                             <div name={index}>
                               {user.name}
                             </div>                            
                           </div>
                         </td>
-                        <td key="calendarID" id={index}>
+                        <td key="email" id={index}>
                           <div className={styles.rowItem}>
                             <div name={index}>
                               {user.email}
