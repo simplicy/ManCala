@@ -2,7 +2,8 @@ import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
 import { useState } from 'react';
-import AccountModal from '../../components/AccountModal'
+import { useRouter } from 'next/router';
+import { useForm } from "react-hook-form";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import toast, { Toaster } from 'react-hot-toast';
@@ -13,8 +14,11 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { IconButton, Tooltip } from '@material-ui/core';
 import Input from '@mui/material/Input';
 import SaveModal from '../../components/DialogModal';
+import AddModal from '../../components/FormDialog'
 
-export default function manage({accounts}) {
+export default function manage({accounts}) {  
+  const router = useRouter();
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const [showAdd, setShowAdd] = useState(false);
   const [Editing, setEditing] = useState(false);
   const [SaveChanges, setSaveChanges] = useState(false);
@@ -33,6 +37,37 @@ export default function manage({accounts}) {
     path: '/api/accounts',
     method: 'PUT',
   }
+  const onSubmit = async data => {
+    const req = await fetch('/api/accounts', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        }) 
+    const json = await req.json()
+    toast(json.message)
+    if(json.success == true){
+      var logContent = {
+        group:'admins',
+        data: JSON.stringify(data),
+      }
+      const loggit = await fetch('/api/logs', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body:JSON.stringify(logContent), 
+        })
+        const loggitJson = await loggit.json()
+        if(loggitJson.success==true){
+          setShowAdd(false)
+          router.reload(window.location.pathname);
+        } 
+      }
+  }
   //Opens the add Account component
   const onAddClick = () => {
     setShowAdd(true);
@@ -47,7 +82,7 @@ export default function manage({accounts}) {
       var toDelete = [e.length]
       for(var n = 0; n<e.length; n++){
         if(e[n].id != "checkAll"){
-          toDelete.push(document.getElementsByName(e[n].id)[0].innerHTML)  
+          toDelete.push(document.getElementsByName(e[n].id)[4].innerHTML)  
         }     
       }
       setPayload(toDelete)
@@ -80,7 +115,7 @@ export default function manage({accounts}) {
     var cancel = document.getElementsByName("cancel")[idx]
     if(Editing){
       var e = document.getElementsByName(idx)
-      for(var n = 1; n < e.length; n=n+2){
+      for(var n = 0; n < e.length; n=n+2){
         e[n].style.display="flex"
         e[n+1].style.display="none"
       }      
@@ -99,7 +134,7 @@ export default function manage({accounts}) {
   const onEdit = (idx, name, acc, cal) =>{
     if(!Editing){      
       var e = document.getElementsByName(idx)
-      for(var n = 1; n < e.length; n=n+2){
+      for(var n = 0; n < e.length; n=n+2){
         e[n].style.display="none"
         e[n+1].style.display="flex"
       }
@@ -109,7 +144,7 @@ export default function manage({accounts}) {
       edit.style.display="none"
       save.style.display="block"
       cancel.style.display="block"
-      setAccountNumber(acc)
+      setAccountEmail(cal)
       setOldAccount({
         accountID:acc,
         friendlyName:name,
@@ -122,18 +157,15 @@ export default function manage({accounts}) {
   }
   //packages data to be saved to the database and replace the old entry
   const onSave = (index) => {
-    if(AccountName=='' && AccountEmail==''){
+    if(AccountName=='' && AccountEmail==oldAccount.calendarID && AccountNumber==''){
       toast("No changes made.")
       onCancel(index)
     }
     else{
       if(AccountName=='')
         AccountName=oldAccount.friendlyName
-      if(AccountEmail=='')
-        AccountEmail=oldAccount.calendarID
-        console.log(AccountNumber)
-        console.log(AccountName)
-        console.log(AccountEmail)
+      if(AccountNumber=='')
+        AccountNumber=oldAccount.accountID
         var updatedDetails = {
           accountID:AccountNumber,
           friendlyName: AccountName,
@@ -175,10 +207,18 @@ export default function manage({accounts}) {
                 </IconButton>
               </Tooltip>
             </div>   
-            <DeleteModal show={showConfirm} onClose={()=>setConfirm(false)} payload={payload} options={confirmOptions} title={"Delete selected."}>
+            <DeleteModal show={showConfirm} onClose={()=>setConfirm(false)} payload={payload} options={confirmOptions} title={"Delete selected?"}>
               Are you sure? This action cannot be undone.
             </DeleteModal> 
-            <AccountModal  onClose={() => setShowAdd(false)} show={showAdd}/>
+            <AddModal onClose={() => setShowAdd(false)} show={showAdd} payload={payload} options={confirmOptions} onSubmit={handleSubmit(onSubmit)} title={"Add Account"}>
+            <form  onSubmit={handleSubmit(onSubmit)}>
+                    <Input type="text" placeholder="Friendly Account Name" {...register("friendlyName", {required:true})} />
+                    <br/> <br/> 
+                    <Input type="text" placeholder="Account Number"inputProps={{ maxLength: 4 }} {...register("accountID", {required: true})} />
+                    <br/> <br/> 
+                    <Input type="email" placeholder="Account Email" {...register("calendarID", {required:true, })} />           
+              </form>
+            </AddModal>
             <SaveModal show={SaveChanges} onClose={()=>setSaveChanges(false)} payload={payload} options={saveOptions} title={"Save changes?"}>
               The account will be overwritten. 
             </SaveModal>
@@ -204,7 +244,10 @@ export default function manage({accounts}) {
                           <div className={styles.rowItem}>
                             <div name={index}>
                               {client.accountID}
-                            </div>                
+                            </div>
+                            <div name={index} style={{display:"none",flex:1}}>
+                              <Input onChange={(e)=>{setAccountNumber(e.target.value)}} value={AccountNumber} style={{maxHeight:"2rem",flex:1}} placeholder={client.accountID}></Input>
+                            </div>              
                           </div>
                         </td>
                         <td key="friendlyName" id={index}>

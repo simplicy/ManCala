@@ -3,22 +3,56 @@ import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
 import { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import AdminModal from '../../components/AdminModal';
+import { useForm } from "react-hook-form";
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import { IconButton, Tooltip } from '@material-ui/core';
-import DialogModal from '../../components/DialogModal'
+import { IconButton, Input, Tooltip } from '@material-ui/core';
+import DeleteModal from '../../components/DialogModal'
+import AddModal from '../../components/FormDialog'
+import { useRouter } from 'next/router';
 
 export default function admins({accounts}) {
+  const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
   const [showConfirm, setConfirm] = useState(false);
   const [payload, setPayload] = useState(null);
   const { data: session, status } = useSession();
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const confirmOptions = {
     path: '/api/admins',
     method: 'DELETE',
   }
-
+  const onSubmit = async data => {
+    const req = await fetch('/api/admins', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        }) 
+    const json = await req.json()
+    toast(json.message)
+    if(json.success == true){
+      var logContent = {
+        group:'admins',
+        data: JSON.stringify(data),
+      }
+      const loggit = await fetch('/api/logs', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body:JSON.stringify(logContent), 
+        })
+        const loggitJson = await loggit.json()
+        if(loggitJson.success==true){
+          setShowAdd(false)
+          router.reload(window.location.pathname);
+        }      
+    }     
+  }
   //Opens the add Account component
   const onAddClick = () => {
     setShowAdd(true);
@@ -77,9 +111,9 @@ export default function admins({accounts}) {
           <h1 className={styles.title}>
               Manage Administrators
           </h1>
-          <div>
-            <Toaster/>
+          <div>            
             <div style={{display:"flex"}}>
+            <Toaster/>
               <Tooltip onClick={()=>{onAddClick()}} title="Add">
                 <IconButton>
                   <AddIcon   sx={{ fontSize: 30,color: "black"}}/>
@@ -92,10 +126,19 @@ export default function admins({accounts}) {
                 </IconButton>
               </Tooltip>
             </div>   
-            <DialogModal show={showConfirm} onClose={()=>setConfirm(false)} payload={payload} options={confirmOptions} title={"Delete selected."}>
+            <DeleteModal show={showConfirm} onClose={()=>setConfirm(false)} payload={payload} options={confirmOptions} title={"Delete selected?"}>
               Are you sure? This action cannot be undone.
-            </DialogModal>            
-            <AdminModal  onClose={() => setShowAdd(false)} show={showAdd}/>
+            </DeleteModal>            
+            <AddModal onClose={() => setShowAdd(false)} show={showAdd} payload={payload} options={confirmOptions} onSubmit={handleSubmit(onSubmit)} title={"Add Account"}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                  <div>
+                    <Input type="text" placeholder="First Last" {...register("name", {required:true})} />
+                    <br/>
+                    <br/>
+                    <Input type="email" placeholder="example@cmscom.co" {...register("email", {required:true, })} />
+                  </div>                
+              </form>
+            </AddModal>         
 
             <div className={styles.yscroll, styles.accTable}>
             <table class="table table-bordered table-striped mb-0">

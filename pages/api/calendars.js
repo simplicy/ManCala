@@ -8,28 +8,21 @@ const createAccount = async(req,res) => {
         calendarID: req.body.calendarID
     });
     try{
-        Account.find({calendarID:account.calendarID}, (error, data)=>{
+        console.log(account)
+        Account.find({accountID:account.accountID}, (error, data)=>{
             if(data.length!=0 || error)
                 res.status(500).send({
                     success:false,
-                    message: error || "Account email exists already, please use another one."
+                    message: error || "Account number exists already, please use another one."
                 })
             else
-            Account.find({accountID:account.accountID}, (error,data)=>{
-                if(data.length!=0 || error)
-                    res.status(500).send({
-                        success:false,
-                        message: error || "Account number exists already, please use another one."
+                account.save(account, (data) => {
+                    res.status(200).send({
+                        success: true,
+                        data: data,
+                        message:"Account created successfully."
                     })
-                else
-                    account.save(account, (data) => {
-                        res.status(200).send({
-                            success: true,
-                            data: data,
-                            message:"Account created successfully."
-                        })
-                    })
-            })
+                })
         })
     } catch (error) {
         res.status(400).send({
@@ -60,9 +53,9 @@ const findAllAccounts = async(req,res) => {
 
 const deleteAccount = async(req,res) => {
     const toDelete = req.body;
-    console.log(toDelete)
+    console.log(toDelete.length)
     
-   Account.deleteMany({calendarID:{$in:toDelete}}, (error,data)=>{
+   Account.deleteMany({accountID:{$in:toDelete}}, (error,data)=>{
         if(error){
             res.status(500).send({
                 success:false,
@@ -73,7 +66,6 @@ const deleteAccount = async(req,res) => {
         else{
             res.send({
                 success: true,
-                data: toDelete,
                 message: "Account(s) deleted successfully!"
             });
         }
@@ -81,8 +73,8 @@ const deleteAccount = async(req,res) => {
 }
 
 const updateAccount = async(req,res) => {
-   const filter = { calendarID: req.body.calendarID };
-   const update = { friendlyName:req.body.friendlyName, accountID:req.body.accountID };
+   const filter = { accountID: req.body.accountID };
+   const update = { friendlyName:req.body.friendlyName, calendarID:req.body.calendarID };
    Account.findOneAndUpdate(filter, update, (error,data)=>{
         if(error){
             res.status(500).send({

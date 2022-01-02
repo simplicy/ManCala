@@ -22,13 +22,27 @@ const DialogModal = ({show, onClose, payload, options, title, children}) =>  {
         },
         body: JSON.stringify(payload),
         });
-        var json = await req.json();
-        toast(json.message);
-        if(json.success == true){
-          
+    var json = await req.json();
+    toast(json.message);
+    if(json.success == true){
+      var logContent = {
+        group: options.path.substring(5),
+        data: JSON.stringify(payload)
+      }
+      const loggit = await fetch('/api/logs', {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: JSON.stringify(logContent),
+        });
+        const loggitJson = await loggit.json()
+        if(loggitJson.success==true){
           onClose();
           router.reload(window.location.pathname);
-        }                      
+        }     
+    }                      
   }
 
   const content = show ? (

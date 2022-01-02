@@ -1,7 +1,6 @@
 import Admin from '../../lib/models/admin.model'
 
 const createAccount = async(req,res) => {
-    console.log("Creating Account")
     var admin = new Admin({
         name: req.body.name,
         email: req.body.email,
@@ -11,13 +10,14 @@ const createAccount = async(req,res) => {
             if(data.length!=0 || error)
                 res.status(500).send({
                     success:false,
-                    message:"User already exists."
+                    message:"Account already exists."
                 })
             else
                 admin.save(admin, (data) => {
                     res.status(200).send({
                         success: true,
                         data: data,
+                        message:"Account created successfully."
                     })
                 })
         })
@@ -30,7 +30,6 @@ const createAccount = async(req,res) => {
 } 
 
 const findAllAccounts = async(req,res) => {
-    console.log("Finding Accounts")
     var condition = {};
     try {
         Admin.find(condition,(error,data) => {
@@ -40,33 +39,41 @@ const findAllAccounts = async(req,res) => {
             })
         })
     }  catch (error) {
-        res.status(500).send({
+        res.status(400).send({
             success:false,
             message:
-              error.message || "Some error occurred while retrieving products."
+              error.message || "Some error occurred while retrieving account(s)."
           });
     }
 }
 
 const deleteAccount = async(req,res) => {
     const toDelete = req.body;
-    console.log(toDelete)
-   Admin.deleteMany({email:{$in:toDelete}}, (error,data)=>{
-       console.log(data)
-        if(error){
-            res.status(500).send({
-                success:false,
-                message:
-                  error.message || "Some Some error ocurred while deleting account(s)."
-              });
-        }
-        else{
-            res.send({
-                success: true,
-                message: "Account(s) deleted successfully!"
-            });
-        }
-   })
+    const numAccounts = (await Admin.find()).length
+    if((numAccounts-(toDelete.length-1))>=1){
+        Admin.deleteMany({email:{$in:toDelete}}, (error,data)=>{
+            console.log(data)
+             if(error){
+                 res.status(400).send({
+                     success:false,
+                     message:
+                       error.message || "Some Some error ocurred while deleting account(s)."
+                   });
+             }
+             else{
+                 res.send({
+                     success: true,
+                     data: toDelete,
+                     message: "Account(s) deleted successfully!"
+                 });
+             }
+        })
+    }else{
+        res.status(400).send({
+            success:false,
+            message:"Must have at least one admin."
+          });
+    }
 }
 
 

@@ -1,44 +1,39 @@
 import { useState } from 'react';
-import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useSession, signOut } from "next-auth/react"
-import styles from '../styles/custom.module.css'
-import Collapse from '@mui/material/Collapse';
-import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
-
+import MenuIcon from '@mui/icons-material/Menu';
+import { Tooltip } from '@material-ui/core';
+import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
+import { IconButton } from '@mui/material';
+import { useRouter } from 'next/router';
 export default function UserMenu() {
-  const { data: session } = useSession()
+  const router = useRouter();
+  const { data: session, status } = useSession()
   const [anchorEl, setAnchorEl] = useState(null);
-  const [checked, setChecked] = useState(false);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
-      setChecked(true);
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
-    setChecked(false)
     setAnchorEl(null);
   };
-
   if(session){
     return (
-        <div>
-          <Button
-            id="basic-button"
+        <>          
+            <Tooltip title="Menu">
+            <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
             aria-controls="basic-menu"
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
             onClick={handleClick}
-          >
-            <Collapse orientation='horizontal' collapsedSize={20} in={!checked}>
-            <MenuRoundedIcon 
-            sx={{ fontSize: 40,
-            color: "white",
-            }}            
-            /> 
-            </Collapse>
-          </Button>
+            >
+              {open ? <KeyboardArrowUp fontSize='large'/> : <MenuIcon fontSize='large'/>}
+            </IconButton>
+            </Tooltip>
           <Menu
             id="basic-menu"
             anchorEl={anchorEl}
@@ -49,11 +44,10 @@ export default function UserMenu() {
             }}
           >
             <MenuItem>Signed in as <br/>{session.user.email.substring(0,session.user.email.indexOf("@"))}</MenuItem>
-            <a className={styles.nostyle} href='/'><MenuItem onClick={handleClose}>Home</MenuItem></a>
-            <a className={styles.nostyle} href='/dashboard'><MenuItem onClick={handleClose}>Dashboard</MenuItem></a>
+            <MenuItem onClick={()=>{router.push("/dashboard"); handleClose()}}>Dashboard</MenuItem>
             <MenuItem onClick={() => {signOut(); handleClose()}}>Logout</MenuItem>
           </Menu>
-        </div>
+        </>
       );
   }
   return null;

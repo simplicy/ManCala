@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useForm } from 'react-hook-form';
-import ConfirmModal from "./EventConfirm";
+import ConfirmModal from "./DialogModal";
 import styles from '../styles/custom.module.css'
 
 const FormModal = ({ show, onClose, editing, payload}) => {

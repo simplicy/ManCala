@@ -1,32 +1,39 @@
-import React from "react";
-import {AppBar} from "@material-ui/core";
-import LoginButton from "./LoginButton";
-import { useSession } from "next-auth/react";
-import UserMenu from "./UserMenu";
+import * as React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import {signIn} from "next-auth/react"
+import { useSession } from "next-auth/react"
+import UserMenu from './UserMenu'
+import { useRouter } from 'next/router';
 
-export default function Header(){
-    const { data: session, status } = useSession()
-    if (status === "loading") {
-        return (
-          null
-        )
-      }  
-  if (session) {
+export default function ButtonAppBar() {  
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  if (status === "loading") {
     return (
-        <AppBar style={{height:"55px"}}>
-            <div style={{display: "flex"}}>
-                <div style={{width: "auto", marginLeft:"auto"}}><UserMenu /></div>
-            </div>            
-        </AppBar>
-    );
+      null
+    )
   }
-  else{
-      return (
-        <AppBar style={{height:"85px"}}>
-            <div style={{display: "flex"}}>
-                <div style={{width: "200px", marginLeft:"auto",marginRight:"5px",paddingTop:"15px"}}><LoginButton /></div>
-            </div>
-        </AppBar>
-      )
-  }
-} 
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="static" sx={{backgroundColor:'purple'}}>
+        <Toolbar>          
+          <Button color="inherit" variant='text' onClick={()=>{router.push("/")}}>
+            <Typography variant="h6"  component="div" sx={{ flexGrow: 1 }}>              
+                Home              
+            </Typography>          
+          </Button>
+          <Typography variant="h6"  component="div" sx={{ flexGrow: 1 }}>             
+          </Typography>
+          {session ? ( <UserMenu /> ):(
+            <Button onClick={() => signIn("google",{callbackUrl:'http://localhost:3000/'})} color="inherit">Login</Button>
+          )
+          }
+        </Toolbar>
+      </AppBar>
+    </Box>
+  );
+}
