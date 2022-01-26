@@ -3,99 +3,10 @@ import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
 import { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import { useForm } from "react-hook-form";
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { IconButton, Input, Tooltip } from '@material-ui/core';
-import DeleteModal from '../../components/DialogModal'
-import AddModal from '../../components/FormDialog'
-import { useRouter } from 'next/router';
-
-export default function admins({accounts}) {
-  const router = useRouter();
-  const [showAdd, setShowAdd] = useState(false);
-  const [showConfirm, setConfirm] = useState(false);
-  const [payload, setPayload] = useState(null);
-  const { data: session, status } = useSession();
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const confirmOptions = {
-    path: '/api/admins',
-    method: 'DELETE',
-  }
-  const onSubmit = async data => {
-    const req = await fetch('/api/admins', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        }) 
-    const json = await req.json()
-    toast(json.message)
-    if(json.success == true){
-      var logContent = {
-        group:'admins',
-        data: JSON.stringify(data),
-      }
-      const loggit = await fetch('/api/logs', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body:JSON.stringify(logContent), 
-        })
-        const loggitJson = await loggit.json()
-        if(loggitJson.success==true){
-          setShowAdd(false)
-          router.reload(window.location.pathname);
-        }      
-    }     
-  }
-  //Opens the add Account component
-  const onAddClick = () => {
-    setShowAdd(true);
-  }
-  //Script that will run when the delete button is pressed
-  //Finds all checked rows in the table and makes a list of them to send to the database to be deleted
-  const onDelete = () => {
-    var e = document.querySelectorAll("input[type='checkbox']:checked");
-    if(e.length<1)
-      toast('Select at least 1 account to delete.');
-    else{
-      var toDelete = [e.length]
-      for(var n = 0; n<e.length; n++){
-        if(e[n].id != "checkAll"){
-          toDelete.push(document.getElementsByName(e[n].id)[1].innerHTML)  
-        }     
-      }
-      setPayload(toDelete)
-      setConfirm(true)
-    }
-  }
-  //When the top most checkbox is checked, will check all entries in the table
-  const onCheckAll = (checked) => {
-    var checkboxes = document.querySelectorAll("input[type='checkbox']");
-    if (checked === true) {
-        for(var n=0;n<checkboxes.length;n++)
-          checkboxes[n].checked=true
-    }
-    if(checked == false){
-      for(var n=0;n<checkboxes.length;n++)
-          checkboxes[n].checked=false
-    }
-  }
-  //Checks the checkbox if the row is clicked
-  const onCheck = (e,index) => {
-    var checkbox = document.querySelectorAll("input[type='checkbox']")[index+1];
-    if (checkbox.checked)
-      checkbox.checked = false
-    else if (!checkbox.checked)
-      checkbox.checked = true
-    
-  }
-
+import AdminTable from '../../components/AdminTable'
+export default function manage({accounts}) {
+  const { data: session, status } = useSession()
+  
   //If session is there, or user is signed in will serve them this page. 
   if (status === "loading") {
     return (
@@ -105,79 +16,14 @@ export default function admins({accounts}) {
   //Returns this page if user is signed in
   //Displays a table of the account database, to edit and manipulate from here
   if(session){
+    console.log(session)
     return (
-      <div className={styles.container}>
+      <div>
           <main className={styles.main}>
           <h1 className={styles.title}>
-              Manage Administrators
+              Admins
           </h1>
-          <div>            
-            <div style={{display:"flex"}}>
-            <Toaster/>
-              <Tooltip onClick={()=>{onAddClick()}} title="Add">
-                <IconButton>
-                  <AddIcon   sx={{ fontSize: 30,color: "black"}}/>
-                </IconButton>
-              </Tooltip>
-              <div style={{flex:3}}/>
-              <Tooltip onClick={()=>{onDelete()}} title="Remove">
-                <IconButton>
-                  <RemoveIcon id='deleteButton' sx={{ fontSize: 30,color: "black"}}/>
-                </IconButton>
-              </Tooltip>
-            </div>   
-            <DeleteModal show={showConfirm} onClose={()=>setConfirm(false)} payload={payload} options={confirmOptions} title={"Delete selected?"}>
-              Are you sure? This action cannot be undone.
-            </DeleteModal>            
-            <AddModal onClose={() => setShowAdd(false)} show={showAdd} payload={payload} options={confirmOptions} onSubmit={handleSubmit(onSubmit)} title={"Add Account"}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-                  <div>
-                    <Input type="text" placeholder="First Last" {...register("name", {required:true})} />
-                    <br/>
-                    <br/>
-                    <Input type="email" placeholder="example@cmscom.co" {...register("email", {required:true, })} />
-                  </div>                
-              </form>
-            </AddModal>         
-
-            <div className={styles.yscroll, styles.accTable}>
-            <table class="table table-bordered table-striped mb-0">
-                <thead>
-                <tr className={styles.tableRow}>
-                    <th scope='col'>
-                      <input className={styles.card} id="checkAll" onChange={(value) => onCheckAll(value.target.checked)} type="checkbox" />
-                    </th>                                        
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                </tr>
-                </thead>
-                <tbody>
-                { accounts != {} ? accounts.map((user, index) => (                    
-                    <tr key={index} id={index} className={styles.tableRow, styles.rowDiv} onClick={(e)=>onCheck(e,index)} >
-                        <td key="checkbox" id={index}>
-                          <input id={index} className={styles.card}  type="checkbox" />
-                        </td>
-                        <td key="name" id={index}>
-                          <div className={styles.rowItem}>
-                            <div name={index}>
-                              {user.name}
-                            </div>                            
-                          </div>
-                        </td>
-                        <td key="email" id={index}>
-                          <div className={styles.rowItem}>
-                            <div name={index}>
-                              {user.email}
-                            </div>                                                                     
-                          </div>
-                        </td>        
-                    </tr>
-                    )): null
-                }
-                </tbody>
-            </table>
-            </div>
-          </div>
+          <AdminTable rows={accounts} session={session} title="Administrators"/> 
           </main>
       </div>
     )
@@ -197,7 +43,7 @@ export default function admins({accounts}) {
   )
   
 }
-//Get accounts from database before the page loads in.
+
 export async function getServerSideProps(params) {
   const mongoose = await Mongo()
   if(!mongoose){

@@ -7,13 +7,14 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useRouter } from "next/router";
 import toast, { Toaster } from 'react-hot-toast';
 
-const DialogModal = ({show, onClose, payload, options, title, children}) =>  {
+const DialogModal = ({show, onClose, payload, options, title, children, session}) =>  {
   const router = useRouter();
   const handleClose = (e) => {
     e.preventDefault();
     onClose();
   };
   const onSubmit = async (e) => {
+    console.log(session)
     const req = await fetch(options.path, {
         method: options.method,
         headers: {
@@ -30,13 +31,16 @@ const DialogModal = ({show, onClose, payload, options, title, children}) =>  {
         data: JSON.stringify(payload)
       }
       const loggit = await fetch('/api/logs', {
-        method: 'DELETE',
+        method: options.method,
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: JSON.stringify(logContent),
-        });
+        body:JSON.stringify({
+          user:session.user.email,
+          payload:JSON.stringify(logContent), 
+        }),
+        })
         const loggitJson = await loggit.json()
         if(loggitJson.success==true){
           onClose();

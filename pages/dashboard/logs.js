@@ -1,7 +1,7 @@
 import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
-import Googbletable from '../../components/FilterTable'
+import LogTable from '../../components/LogTable'
 
 export default function admins({accounts: logList}) {
   const { data: session, status } = useSession();
@@ -42,7 +42,7 @@ export default function admins({accounts: logList}) {
           <h1 className={styles.title}>
               Logs
           </h1>
-          <Googbletable data={logList} title="Logs"/> 
+          <LogTable rows={logList} title="Logs"/> 
           </main>
       </div>
     )

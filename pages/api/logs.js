@@ -1,18 +1,28 @@
 import Log from '../../lib/models/log.model'
-
 const createAccount = async(req,res) => {
+    var newId = Math.floor(Math.random()*9000000) + 1000000;
+    while((await Log.find({id:newId})).length!=0){
+        newId = Math.floor(Math.random()*9000000) + 1000000;
+    }
+    const payload = JSON.parse(req.body.payload);
+    console.log(JSON.parse(req.body.payload))
     var log = new Log({
+        id: newId,
+        who: req.body.user,
         type:"ADD",
-        group:req.body.group,
-        data:JSON.parse(req.body.data),
+        group:payload.group.toString(),
+        data:JSON.parse(payload.data),
     })
+    console.log(log)
     log.save(log, (error,data)=>{
-        if(error)
+        if(error){
             res.status(500).send({
                 success:false,
                 message:
                 error.message || "Some error occurred while creating the log."
             });
+            logCount--;
+        }
         if(data)
             res.status(200).send({
                 success: true,
@@ -41,54 +51,62 @@ const findAllAccounts = async(req,res) => {
 }
 
 const updateAccount = async(req,res) => {
+    var newId = Math.floor(Math.random()*9000000) + 1000000;
+    while((await Log.find({id:newId})).length!=0){
+        newId = Math.floor(Math.random()*9000000) + 1000000;
+    }
+    const payload = JSON.parse(req.body.payload);
+    console.log(JSON.parse(req.body.payload))
     var log = new Log({
-        type: req.body.type,
-        data: {
-            oldEvent: {
-                accountID:req.body.data.oldEvent.accountID,
-                friendlyName:req.body.data.oldEvent.friendlyName,
-                calendarID:req.body.data.oldEvent.calendarID,
-            },
-            newEvent: {
-                accountID:req.body.data.newEvent.accountID,
-                friendlyName:req.body.data.newEvent.friendlyName,
-                calendarID:req.body.data.newEvent.calendarID,
-            },
-            }
-        });
-    const filter = { accountID: req.body.data.oldEvent.accountID };
-    const update = { friendlyName:req.body.data.newEvent.friendlyName, calendarID:req.body.data.newEvent.calendarID };
-    Account.findOneAndUpdate(filter, update, (error,data)=>{
-         if(error){
-             res.status(500).send({
-                 success:false,
-                 message:
-                   error.message || "Some Some error ocurred while updating the account."
-               });
-         }
-         else{
-             res.send({
-                 success: true,
-                 message: "Account updated successfully!"
-             });
-         }
+        id: newId,
+        who: req.body.user,
+        type:"UPDATE",
+        group:payload.group.toString(),
+        data:JSON.parse(payload.data),
     })
- }
-
- 
-const deleteAccount = async(req,res) => {
-    var log = new Log({
-        type:"DELETE",
-        group:req.body.group,
-        data:JSON.parse(req.body.data),
-    })
+    console.log(log)
     log.save(log, (error,data)=>{
-        if(error)
+        if(error){
             res.status(500).send({
                 success:false,
                 message:
                 error.message || "Some error occurred while creating the log."
             });
+            logCount--;
+        }
+        if(data)
+            res.status(200).send({
+                success: true,
+                data: data,
+            })
+    })
+ }
+
+ 
+const deleteAccount = async(req,res) => {
+    var newId = Math.floor(Math.random()*9000000) + 1000000;
+    while((await Log.find({id:newId})).length!=0){
+        newId = Math.floor(Math.random()*9000000) + 1000000;
+    }
+    const payload = JSON.parse(req.body.payload);
+    console.log(JSON.parse(req.body.payload))
+    var log = new Log({
+        id: newId,
+        who: req.body.user,
+        type:"DELETE",
+        group:payload.group.toString(),
+        data:JSON.parse(payload.data),
+    })
+    console.log(log)
+    log.save(log, (error,data)=>{
+        if(error){
+            res.status(500).send({
+                success:false,
+                message:
+                error.message || "Some error occurred while creating the log."
+            });
+            logCount--;
+        }
         if(data)
             res.status(200).send({
                 success: true,

@@ -1,7 +1,12 @@
 import Admin from '../../lib/models/admin.model'
 
 const createAccount = async(req,res) => {
+    var newId = Math.floor(Math.random()*90000) + 10000;
+    while((await Admin.find({id:newId})).length!=0){
+        newId = Math.floor(Math.random()*90000) + 10000;
+    }
     var admin = new Admin({
+        id: newId,
         name: req.body.name,
         email: req.body.email,
     });
@@ -29,6 +34,26 @@ const createAccount = async(req,res) => {
     }
 } 
 
+const updateAccount = async (req,res) => {
+    const update = { name:req.body.name, email:req.body.email };
+    Admin.findOneAndUpdate({id:req.body.id},update,(error,data)=>{
+        if(data){
+            res.status(200).send({
+                success: true,
+                message: "Administrator Updated sucessfully.",
+                data: data,
+            })
+        }
+        if(error){
+            res.status(400).send({
+                success:false,
+                message:
+                  error.message || "Some error occurred while retrieving account(s)."
+              });
+        }
+    })
+}
+
 const findAllAccounts = async(req,res) => {
     var condition = {};
     try {
@@ -48,11 +73,12 @@ const findAllAccounts = async(req,res) => {
 }
 
 const deleteAccount = async(req,res) => {
-    const toDelete = req.body;
+    const toDelete = req.body.map((data)=>{
+        return data.id;
+    });
     const numAccounts = (await Admin.find()).length
     if((numAccounts-(toDelete.length-1))>=1){
-        Admin.deleteMany({email:{$in:toDelete}}, (error,data)=>{
-            console.log(data)
+        Admin.deleteMany({id:{$in:toDelete}}, (error,data)=>{
              if(error){
                  res.status(400).send({
                      success:false,
@@ -79,6 +105,7 @@ const deleteAccount = async(req,res) => {
 
 const methods = {
     GET: findAllAccounts,
+    PUT: updateAccount,
     POST: createAccount,
     DELETE: deleteAccount,
 }

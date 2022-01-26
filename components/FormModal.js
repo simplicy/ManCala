@@ -5,7 +5,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-const FormDialog = ({show, onClose, onSubmit, title,children}) => {
+const FormDialog = ({show, onClose, onSubmit, title, children}) => {
   const handleClose = (e) => {
     e.preventDefault();
     onClose();

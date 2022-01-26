@@ -2,20 +2,21 @@ import Account from '../../lib/models/account.model'
 
 const createAccount = async(req,res) => {
     console.log("Creating Account")
+    console.log(req.body.id)
     var account = new Account({
-        accountID: req.body.accountID,
-        friendlyName: req.body.friendlyName,        
-        calendarID: req.body.calendarID
+        id: req.body.id,
+        name: req.body.name,        
+        email: req.body.email
     });
     try{
-        Account.find({calendarID:account.calendarID}, (error, data)=>{
+        Account.find({id:account.id}, (error, data)=>{
             if(data.length!=0 || error)
                 res.status(500).send({
                     success:false,
                     message: error || "Account email exists already, please use another one."
                 })
             else
-            Account.find({accountID:account.accountID}, (error,data)=>{
+            Account.find({id:account.id}, (error,data)=>{
                 if(data.length!=0 || error)
                     res.status(500).send({
                         success:false,
@@ -58,11 +59,16 @@ const findAllAccounts = async(req,res) => {
     }
 }
 
+
+
 const deleteAccount = async(req,res) => {
-    const toDelete = req.body;
+    const toDelete = req.body.map((data)=>{
+        return data.id;
+    });
     console.log(toDelete)
     
-   Account.deleteMany({calendarID:{$in:toDelete}}, (error,data)=>{
+    
+   Account.deleteMany({id:{$in:toDelete}}, (error,data)=>{
         if(error){
             res.status(500).send({
                 success:false,
@@ -81,8 +87,10 @@ const deleteAccount = async(req,res) => {
 }
 
 const updateAccount = async(req,res) => {
-   const filter = { calendarID: req.body.calendarID };
-   const update = { friendlyName:req.body.friendlyName, accountID:req.body.accountID };
+    console.log(req)
+    //need to perform a check to make sure that email is not duplicated in db
+   const filter = { id: req.body.id };
+   const update = { name:req.body.name, email:req.body.email };
    Account.findOneAndUpdate(filter, update, (error,data)=>{
         if(error){
             res.status(500).send({
