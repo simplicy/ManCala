@@ -9,7 +9,7 @@ npm install
 # or
 yarn i
 ```
-Then, add your env variables for MongoDB, and Google for Auth
+Then, add your Mongo DB URI, Google Secret and ID to your Env Variable file.
 
 Finally, run the development server
 ```bash
