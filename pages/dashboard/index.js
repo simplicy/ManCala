@@ -1,9 +1,11 @@
 import styles from '../../styles/custom.module.css'
 import { useSession, signIn, signOut } from "next-auth/react"
 import dbConnect from '../../lib/Mongo'
+import { useRouter } from 'next/router'
 
 export default function Home() {
   const { data: session, status } = useSession()
+  const router = useRouter();
   const isAdmin = true;
   if (status === "loading") {
     return (
@@ -19,25 +21,25 @@ export default function Home() {
         </h1>
 
         <div className={styles.row}>
-            <a href="/accounts" className={styles.card}>
+            <a onClick={()=>{router.push("/accounts")}} className={styles.card}>
             <h2>All Accounts &rarr;</h2>
             <p>View a list of our client's calendars.</p>
             </a>
-            <a href="/dashboard/admins" className={styles.card}>
+            <a onClick={()=>{router.push("/dashboard/admins")}} className={styles.card}>
             <h2>Manage Administrators &rarr;</h2>
             <p>Manage who has access to the dashboard</p>
             </a>
         </div>
 
         <div className={styles.row}>
-            <a href="/dashboard/manage" className={styles.card}>
+            <a onClick={()=>{router.push("/dashboard/manage")}} className={styles.card}>
             <h2>Manage Accounts &rarr;</h2>
             <p>Add, Edit or Delete accounts in the database.</p>
             </a>
 
             
 
-            <a href="/dashboard/logs" className={styles.card}>
+            <a onClick={()=>{router.push("/dashboard/logs")}} className={styles.card}>
             <h2>View Logs &rarr;</h2>
             <p>View logs of all Calendar event changes.</p>
             </a>

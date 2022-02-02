@@ -1,9 +1,10 @@
 import styles from '../styles/custom.module.css'
 import { useSession, signIn, signOut } from "next-auth/react"
-import mongo from '../lib/Mongo'
+import { useRouter } from 'next/router'
 
 export default function Home() {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const isAdmin = true;
   if (status === "loading") {
     return (
@@ -19,14 +20,14 @@ export default function Home() {
               <a href="https://github.com/simplicy/next-calendar-manager">Calendar Manager</a>
             </h1>
   
-            <div className={styles.row}>
-              <a href="/accounts" className={styles.card}>
+            <div className={styles.row} onClick={()=>{router.push("/accounts")}}>
+              <a className={styles.card}>
                 <h2>All Accounts &rarr;</h2>
                 <p>View a list of our client's calendars.</p>
               </a>
             </div>
-            <div className={styles.row}>  
-              <a href="/dashboard" className={styles.card}>
+            <div className={styles.row} onClick={()=>{router.push("/dashboard")}}>  
+              <a className={styles.card}>
                 <h2>Dashboard &rarr;</h2>
                 <p>Access Administrative Dashboard.</p>
               </a>

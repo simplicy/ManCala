@@ -21,7 +21,7 @@ const DialogModal = ({show, onClose, payload, options, title, children, session}
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload.new),
         });
     var json = await req.json();
     toast(json.message);

@@ -2,19 +2,12 @@ import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
 import React from "react";
 import Mongo from '../../lib/Mongo'
-import Link from 'next/link'
-import { Input } from '@material-ui/core';
+import { useRouter } from 'next/router';
+import AccountList from '../../components/AccountList'
+
 export default function Accounts({accounts}) {
+  const router = useRouter();
   const { data: session, status } = useSession()
-  var searchQuery = "";
-  const handleSearch = (value) => {
-    console.log(value)
-    if(value==null)
-      searchQuery=searchQuery.substring(0,searchQuery.length-1)
-    else
-      searchQuery+=value
-    console.log(searchQuery)
-  }
   //If session is there, or user is signed in will serve them this page. 
   if (status === "loading") {
     return (
@@ -29,31 +22,7 @@ export default function Accounts({accounts}) {
           <h1 className={styles.title}>
               Accounts Page
           </h1>
-          <div>
-            <Input className={styles.searchBar} placeholder="Search by Name or Account Number" type="text" onChange={(value)=>{handleSearch(value.nativeEvent.data)}}/>
-          </div>          
-          <div className={styles.yscroll, styles.accGrid}>
-            <div className={styles.grid}>
-            { accounts.length > 0 ? (
-              accounts.map((client) => (
-                
-                <Link href={{
-                  pathname: '/accounts/'+client.accountID}} as={'/accounts/'+client.accountID}>
-                  <div className={styles.accountCard}>
-                    <a>
-                      <h4>{client.friendlyName}</h4>  
-                      <h5>{client.accountID}</h5>
-                    </a>                                      
-                  </div>
-                </Link>         
-              ))):(
-                <h2 className="subtitle">
-                No Accounts Found
-                </h2>
-              )     
-            }
-            </div>
-          </div>
+          <AccountList accounts={accounts}/>
           </main>
       </div>
     )

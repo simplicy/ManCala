@@ -203,10 +203,14 @@ const EnhancedTableToolbar = (props) => {
       if(email==''){
         email=selected[0].email
       }
+      // Make change to payload here, add the old row and the new row. edit the Dialog Modal so that it reflects these changes
       setPayload({
-        id:num,
-        name:name,
-        email:email,
+        old: selected,
+        new:{
+          id:num,
+          name:name,
+          email:email,
+        }        
       })
       setShowSave(true);
 

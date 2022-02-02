@@ -200,9 +200,12 @@ const EnhancedTableToolbar = (props) => {
         email=selected[0].email
       }
       setPayload({
-        id:num,
-        name:name,
-        email:email,
+        old: selected,
+        new:{
+          id:num,
+          name:name,
+          email:email,
+        }        
       })
       setShowSave(true);
 
