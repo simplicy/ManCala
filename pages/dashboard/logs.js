@@ -5,6 +5,7 @@ import LogTable from '../../components/LogTable'
 
 export default function admins({accounts: logList}) {
   const { data: session, status } = useSession();
+  const isAdmin = true;
   //When the top most checkbox is checked, will check all entries in the table
   const onCheckAll = (checked) => {
     var checkboxes = document.querySelectorAll("input[type='checkbox']");
@@ -35,7 +36,7 @@ export default function admins({accounts: logList}) {
   }
   //Returns this page if user is signed in
   //Displays a table of the account database, to edit and manipulate from here
-  if(session){
+  if(session && isAdmin){
     return (
       <div className={styles.container}>
           <main className={styles.main}>

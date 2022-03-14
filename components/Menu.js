@@ -7,11 +7,13 @@ import { Tooltip } from '@material-ui/core';
 import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
 import { IconButton } from '@mui/material';
 import { useRouter } from 'next/router';
+
 export default function UserMenu() {
   const router = useRouter()
   const { data: session } = useSession()
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const isAdmin = true;
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -45,7 +47,7 @@ export default function UserMenu() {
             }}
           >
             <MenuItem>Signed in as <br/>{session.user.email.substring(0,session.user.email.indexOf("@"))}</MenuItem>            
-            <MenuItem onClick={()=>{router.push("/dashboard"); handleClose()}}>Dashboard</MenuItem>
+            {isAdmin ? <MenuItem onClick={()=>{router.push("/dashboard"); handleClose()}}>Dashboard</MenuItem>: <></> }
             <MenuItem onClick={() => {signOut(); handleClose()}}>Logout</MenuItem>
           </Menu>
         </>

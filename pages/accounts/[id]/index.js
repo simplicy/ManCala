@@ -1,9 +1,11 @@
 import styles from '../../../styles/custom.module.css'
 import Calendar from '../../../components/Calendar'
 import { useSession } from "next-auth/react"
+import Mongo from '../../../lib/Mongo'
 
-export default function AccoundID() {
+export default function AccoundID({account}) {
   //If session is there, or user is signed in will serve them this page. 
+  console.log(account)
   const { data: session, status } = useSession()
   if (status === "loading") {
     return (
@@ -16,9 +18,12 @@ export default function AccoundID() {
       <div>
           <main className={styles.main}>
           <h1 className={styles.title}>
-              Account Page
+              {account[0].name}
           </h1>
-          <Calendar />
+          
+          <Calendar
+            account={account}
+           />
           </main>
       </div>
     ) 
@@ -36,4 +41,34 @@ export default function AccoundID() {
     </div>
   )
 }
+
+export async function getServerSideProps(params) {
+  const mongoose = await Mongo()
+  if(!mongoose){
+    throw new Error 
+    "Database is not connected!"
+  }
+  const cals = await fetch('http://localhost:3080/api/calendars/', {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      email:'ratchetclnk55@gmail.com',
+    },
+  })
+  
+  const res = await fetch('http://localhost:3000/api/accounts/', {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      id:params.query.id,
+    },
+  })
+  const payload = await (res.json())
+  const account = payload.data || {}
+
+  return { props: { account} }
+}
+
 

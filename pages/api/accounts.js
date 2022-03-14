@@ -5,8 +5,7 @@ const createAccount = async(req,res) => {
     console.log(req.body.id)
     var account = new Account({
         id: req.body.id,
-        name: req.body.name,        
-        email: req.body.email
+        name: req.body.name,
     });
     try{
         Account.find({id:account.id}, (error, data)=>{
@@ -43,6 +42,8 @@ const createAccount = async(req,res) => {
 const findAllAccounts = async(req,res) => {
     console.log("Finding Accounts")
     var condition = {};
+    if(req.headers.id)
+        condition = {id:req.headers.id}
     try {
         Account.find(condition,(error,data) => {
             res.status(200).send({
@@ -62,9 +63,11 @@ const findAllAccounts = async(req,res) => {
 
 
 const deleteAccount = async(req,res) => {
+    console.log(req.body)
     const toDelete = req.body.map((data)=>{
         return data.id;
     });
+
     console.log(toDelete)
     
     

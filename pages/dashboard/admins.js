@@ -6,7 +6,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import AdminTable from '../../components/AdminTable'
 export default function manage({accounts}) {
   const { data: session, status } = useSession()
-  
+  const isAdmin = true;
   //If session is there, or user is signed in will serve them this page. 
   if (status === "loading") {
     return (
@@ -15,7 +15,7 @@ export default function manage({accounts}) {
   }
   //Returns this page if user is signed in
   //Displays a table of the account database, to edit and manipulate from here
-  if(session){
+  if(session && isAdmin){
     console.log(session)
     return (
       <div>

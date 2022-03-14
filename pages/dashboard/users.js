@@ -3,10 +3,10 @@ import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
 import { useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import AccountTable from '../../components/AccountTable'
-export default function manage({accounts}) {
+import UserTable from '../../components/UserTable'
+export default function manage({users}) {
   const { data: session, status } = useSession()
- 
+  const isAdmin = true;
   //If session is there, or user is signed in will serve them this page. 
   if (status === "loading") {
     return (
@@ -15,15 +15,14 @@ export default function manage({accounts}) {
   }
   //Returns this page if user is signed in
   //Displays a table of the account database, to edit and manipulate from here
-  if(session){
-    console.log(session)
+  if(session && isAdmin){
     return (
       <div>
           <main className={styles.main}>
           <h1 className={styles.title}>
               Accounts
           </h1>
-          <AccountTable rows={accounts} session={session} title="Accounts" /> 
+          <UserTable rows={users} session={session} title="Users" /> 
           </main>
       </div>
     )
@@ -50,7 +49,8 @@ export async function getServerSideProps(params) {
     throw new Error 
       "Database is not connected!"
   }
-  const res = await fetch('http://localhost:3000/api/accounts', {
+
+  const res = await fetch('http://localhost:3000/api/users', {
     method: 'GET',
     headers: {
       Accept: 'application/json',

@@ -12,7 +12,7 @@ export default function Home() {
       null
     )
   }
-  if(session){
+  if(session && isAdmin){
     return (
     <div className={styles.container}>
         <main className={styles.main}>
@@ -32,7 +32,7 @@ export default function Home() {
         </div>
 
         <div className={styles.row}>
-            <a onClick={()=>{router.push("/dashboard/manage")}} className={styles.card}>
+            <a onClick={()=>{router.push("/dashboard/accounts")}} className={styles.card}>
             <h2>Manage Accounts &rarr;</h2>
             <p>Add, Edit or Delete accounts in the database.</p>
             </a>

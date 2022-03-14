@@ -14,18 +14,19 @@ const DialogModal = ({show, onClose, payload, options, title, children, session}
     onClose();
   };
   const onSubmit = async (e) => {
-    console.log(session)
+    console.log(payload)
     const req = await fetch(options.path, {
         method: options.method,
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload.new),
+        body: JSON.stringify(payload),
         });
     var json = await req.json();
     toast(json.message);
     if(json.success == true){
+      
       var logContent = {
         group: options.path.substring(5),
         data: JSON.stringify(payload)
@@ -44,7 +45,7 @@ const DialogModal = ({show, onClose, payload, options, title, children, session}
         const loggitJson = await loggit.json()
         if(loggitJson.success==true){
           onClose();
-          router.reload(window.location.pathname);
+          router.push(window.location.pathname);
         }     
     }                      
   }

@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import {signIn} from "next-auth/react"
 import { useSession } from "next-auth/react"
-import UserMenu from './UserMenu'
+import Menu from './Menu'
 import { useRouter } from 'next/router';
 
 export default function ButtonAppBar() {  
@@ -21,15 +21,15 @@ export default function ButtonAppBar() {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" sx={{backgroundColor:'gray'}}>
         <Toolbar>          
-          <Button color="inherit" variant='text' onClick={()=>{router.push("/")}}>
+          <Button color="inherit" variant='text' onClick={()=>{router.push("/accounts")}}>
             <Typography variant="h6"  component="div" sx={{ flexGrow: 1}}>              
                 Home              
             </Typography>          
           </Button>
           <Typography variant="h6"  component="div" sx={{ flexGrow: 1 }}>             
           </Typography>
-          {session ? ( <UserMenu /> ):(
-            <Button onClick={() => signIn("google",{callbackUrl:'http://localhost:3000/'})} color="inherit">Login</Button>
+          {session ? ( <Menu /> ):(
+            <Button onClick={() => {signIn("google",{callbackUrl:window.location.pathname})}}color="inherit">Login</Button>
           )
           }
         </Toolbar>

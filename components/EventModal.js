@@ -1,175 +1,191 @@
-import React, { useEffect, useRef, useState } from "react";
-import styled from "styled-components";
 import { useForm } from 'react-hook-form';
-import ConfirmModal from "./DialogModal";
-import styles from '../styles/custom.module.css'
+import TextField from '@mui/material/TextField';
+import { Grid } from '@mui/material';
 
-const FormModal = ({ show, onClose, editing, payload}) => {
-    const [confirmModal, setConfirm] = useState(false);
-    const modalWrapperRef = React.useRef();
-    const confirmRef = React.useRef();
-    const { register, setValue, handleSubmit, formState: { errors } } = useForm()
-    const handleCloseClick = (e) => {
-      e.preventDefault();
-      setValue("date",null);
-      setValue("startTime",null);
-      setValue("endTime",null);
-      onClose();
-    };    
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
-    const onSubmit =  data => {
-      var form = document.getElementById("eventForm");
-      form.reset();
-      onClose();  
-    };
-    const onTrashClick = () => {
-      console.log("Trash Cicked!")
-      setConfirm(true);
-    };
-    const onEditClick = () => {
-      console.log("Edit Cicked!")
-      setEditMode(true);
-    };
+const DialogModal = ({show, onClose, payload, title, editing}) =>  {
+  const handleClose = (e) => {
+    document.getElementById("eventForm").reset();
+    e.preventDefault();
+    onClose();
+  };
+  const { register, setValue, handleSubmit, formState: { errors } } = useForm();
+  const onSubmit =  (data) => {
+    console.log(data)
+    var form = document.getElementById("eventForm");
+    form.reset();
+    onClose();  
+  };
 
-    setValue("date",payload.event.date);
-    if((payload.event.start && payload.event.end) != "00:00" && "24:00"){
-      setValue("startTime",payload.event.start);
-      setValue("endTime",payload.event.end);
-    }  
-    const modalContent = <>
-        { editing ? (
-                <StyledModalOverlay>
-                  <StyledModalWrapper ref={modalWrapperRef}>
-                      <StyledModal>
-                        <StyledModalHeader>
-                            <a href="#" onClick={handleCloseClick}>
-                            x
-                            </a>
-                        </StyledModalHeader>
-                        <StyledModalBody>
-                        <form id="eventForm" onSubmit={handleSubmit(onSubmit)}>
-                          <div className={styles.row}>
-                            <input  className={styles.eventTitle} type="text" cols="150" rows="1" placeholder="Title" {...register("eventTitle")} />
-                          </div>
-                          <div className={styles.row}>
-                            <div className={styles.column}>                          
-                                <label htmlFor="date">Date:</label>                        
-                                <input id="date"className={styles.card} type="date" placeholder="Date" {...register("date")} />                          
-                                <label htmlFor="startTime">Start Time:</label>
-                                <input id="startTime" className={styles.card} type="time" placeholder="Time" {...register("startTime")} />                           
-                                <label htmlFor="endTime">End Time:</label>
-                                <input id="endTime" className={styles.card} type="time" title="Time" {...register("endTime")} /> 
-                            </div>                            
-                            <div className={styles.column}>
-                                <textarea className={styles.card} type="text" cols="20" rows="4" placeholder="Details" {...register("details")} />
-                                <textarea className={styles.card} type="text" cols="20" rows="2" placeholder={'Attendee emails'+"   "+'(Each on a new line)'} {...register("attendees")} />
-                                <textarea className={styles.card} type="text" cols="20" rows="1" placeholder="Address" {...register("location")} />
-                                <button className={styles.submitButton} name="submitButton" type="submit" placeholder="">Submit</button>  
-                            </div>                          
-                          </div>                         
-                        </form>
-                        </StyledModalBody>
-                      </StyledModal>
-                  </StyledModalWrapper>
-                </StyledModalOverlay>
-                 ) :
-                (
-                <StyledModalOverlay>
-                  <StyledModalWrapper ref={modalWrapperRef}>
-                    <StyledModal>
-                      <StyledModalHeader>
-                            <div className={styles.edit} onClick={()=>onEditClick()}>
-                              
-                                <img src="/n-edit.svg"   alt="edit" className="icons" />
-                              
-                            </div>  
-                            <div className={styles.edit} onClick={()=>onTrashClick()}>
-                              <a href="#">                                
-                                <img src="/trash-can.svg" alt="delete" className="icons" /> 
-                              </a>
-                            </div>  
-                            <div className={styles.column}/>
-                            <div className={styles.column}/>
-                          <a href="#" onClick={handleCloseClick} className={styles.x}>
-                          x
-                          </a>
-                      </StyledModalHeader>
-                      <StyledModalBody>
-                      <ConfirmModal ref={confirmRef} onClose={() => setShowModal(false)} show={confirmModal} className="card">
-                      </ConfirmModal>
-                      <form id="eventForm" onSubmit={handleSubmit(onSubmit)}>
-                          <div className={styles.row}>
-                            <div className={styles.column}>                          
-                              Event Viewing!                        
-                            </div>
-                            <div className={styles.column}>
-                              <p className={styles.card} type="text" cols="20" rows="25" placeholder="Details" {...register("details", {})} />
-                            </div>                          
-                          </div>    
-                        </form>
-                      </StyledModalBody>
-                    </StyledModal>
-                  </StyledModalWrapper>
-              </StyledModalOverlay>
-              )
-            }
-        <style jsx>{`
-        label {
-          padding: 20px;
-        }
-        textarea {
-          resize:none;
-        }
-        
-        input {
-          display:flex;
-          width:80%;
-        }
-      `}</style>
-      </>;
-  
-    if(show)
-        return modalContent;
-    else
-        return null;
-};
-  
-  const StyledModalBody = styled.div`
-    padding-top: 10px;
-    height: 100%;
-  `;
-  const StyledModalWrapper = styled.div`
-    width: 550px;
-    height: 680px;
-    z-index: 10;
-  `;
-  
-  const StyledModalHeader = styled.div`
-    display: flex;
-    justify-content: flex-end;
-    font-size: 15px;
+  setValue("date",payload.event.date);
+  if((payload.event.start && payload.event.end) != "00:00" && "24:00"){
+    setValue("startTime",payload.event.start);
+    setValue("endTime",payload.event.end);
+  }  
+  const viewEvent = (
+    <>
     
-  `;
-  
-  const StyledModal = styled.div`
-    background: white;
-    width: 550px;
-    height: 680px;
-    border-radius: 15px;
-    padding: 15px;
-    z-index: 10;
-  `;
-  const StyledModalOverlay = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9;
-  `;
-  
-  export default FormModal;
+    </>
+  );
+  const editEvent = (
+    <form id="eventForm" onSubmit={handleSubmit(onSubmit)}>
+      <div>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <TextField 
+              sx={{ width: "100%" }}
+              label="Title"
+              variant="filled"
+              color="primary"
+              rows="1" 
+              {...register("eventTitle")}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField 
+              id="date"
+              label="Date"
+              color="primary"
+              variant="filled"
+              sx={{ width: "100%" }}
+              type="date" 
+              {...register("date")} 
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField 
+              id="startTime" 
+              label="Start Time"
+              variant="filled"
+              sx={{ width: "100%" }}
+              color="primary"
+              type="time" 
+              {...register("startTime")} 
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField 
+              id="endTime" 
+              label="End Time"
+              sx={{ width: "100%" }}
+              color="primary"
+              type="time"
+              variant="filled"
+              {...register("endTime")} 
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField 
+              label="Details"
+              color="primary"
+              sx={{ width: "100%" }}
+              multiline
+              rows={4}
+              variant="filled"
+              type="text"
+              placeholder={('Details or Notes about this Event.')} 
+              {...register("details")} 
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField 
+              label="Attendee Emails"
+              color="primary"
+              sx={{ width: "100%" }}
+              variant="filled"
+              multiline            
+              rows={4}
+              type="text"  
+              placeholder={('(Each on a new line)')} 
+              {...register("attendees")} 
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Address 1"
+              variant="filled"
+              sx={{ width: "100%" }}
+              color="primary"
+              type="text"
+              {...register("addr1")} 
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Address 2"
+              variant="filled"
+              sx={{ width: "100%" }}
+              color="primary"
+              type="text"
+              {...register("location")} 
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              label="City"
+              variant="filled"
+              sx={{ width: "100%" }}
+              color="primary"
+              type="text"
+              {...register("city")} 
+            />
+          </Grid>          
+          <Grid item xs={4}>
+            <TextField
+              label="State"
+              variant="filled"
+              sx={{ width: "100%" }}
+              color="primary"
+              type="text"
+              {...register("state")} 
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              label="Zip Code"
+              variant="filled"
+              sx={{ width: "100%"}}
+              color="primary"
+              type="text"
+              {...register("zip")} 
+            />
+          </Grid>
+        </Grid>
+      </div>
+      <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button type='submit' autoFocus>
+          Confirm
+        </Button>
+      </DialogActions>
+    </form>
+  )
+
+  const content = show ? (
+    <>
+      <Dialog
+        open={show}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {title}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {editEvent}
+          </DialogContentText>
+        </DialogContent>
+      </Dialog>
+    </>
+  ):null
+  return content;
+}
+export default DialogModal;

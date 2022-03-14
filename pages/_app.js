@@ -5,6 +5,7 @@ import Layout from "../components/Layout"
 import { db } from "../lib/Mongo"
 
 function MyApp({ Component, pageProps:{ session, ...pageProps } }) {
+  
   return (
       <SessionProvider session={session}>
         <Layout>
