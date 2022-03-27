@@ -15,17 +15,19 @@ export default function AccoundID({account}) {
   //Returns this page if user is not signed in
   if(session){
     return (
-      <div>
+      <>
           <main className={styles.main}>
           <h1 className={styles.title}>
               {account[0].name}
           </h1>
-          
-          <Calendar
-            account={account}
-           />
+
+         
+            <Calendar
+              account={account}
+            />
+         
           </main>
-      </div>
+      </>
     ) 
   }
   return (

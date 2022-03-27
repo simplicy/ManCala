@@ -114,7 +114,7 @@ export default function BigCalendar({account}){
                     onSelectSlot={(slotInfo)=>{onSelectSlot(slotInfo)}}
                     onSelectEvent={(event)=>{onSelectEvent(event)}}
                     onDoubleClickEvent={(event)=>{onSelectEvent(event)}}
-                    style={{ height: "55rem", width: "55rem" }}
+                    style={{ height: "30rem", width: "35rem" }}
             /> 
           </Grid>
           <EventModal show={showModal} onClose={() => setShowModal(false)}
