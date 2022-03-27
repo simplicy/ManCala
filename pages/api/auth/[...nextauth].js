@@ -2,7 +2,7 @@ import NextAuth from "next-auth/next";
 import GoogleProvider from 'next-auth/providers/google'
 
 const options = {
-  secret: process.env.SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     // OAuth authentication providers
     GoogleProvider({
