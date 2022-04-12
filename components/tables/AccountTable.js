@@ -21,15 +21,16 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import { visuallyHidden } from '@mui/utils';
 import AddIcon from '@mui/icons-material/Add';
-import FormModal from './FormModal'
+import FormModal from '../modals/FormModal'
 import { useForm } from "react-hook-form";
 import toast, { Toaster } from 'react-hot-toast';
 import Input from '@mui/material/Input';
-import DialogModal from './DialogModal';
+import DialogModal from '../modals/DialogModal';
 import SaveIcon from '@mui/icons-material/Save';
+import Collapse from '@mui/material/Collapse';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { set } from 'mongoose';
-import { getSession } from 'next-auth/react';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -70,18 +71,29 @@ function EnhancedTableHead(props) {
     onRequestSort(event, property);
   };
   const headCells = [
-    
+    {
+      id: 'id',
+      numeric: false,
+      disablePadding: true,
+      label: 'ID',
+    },
     {
       id: 'name',
       numeric: true,
       disablePadding: false,
-      label: 'Name',
+      label: 'Account Name',
     },
     {
-      id: 'email',
-      numeric: true,
+      id: 'expand',
+      numeric: false,
+      disablePadding: true,
+      label: '',
+    },
+    {
+      id: 'users',
+      numeric: false,
       disablePadding: false,
-      label: 'Email',
+      label: 'Account Users',
     },
   ];
   
@@ -136,19 +148,20 @@ EnhancedTableHead.propTypes = {
 };
 
 const EnhancedTableToolbar = (props) => {
-  const router = useRouter()
-  const { numSelected, content, selected, edit, setEdit, name, num, email, session } = props;
+  
+  const { numSelected, content, selected, edit, setEdit, name, num, session, router } = props;
   const [showAdd, setShowAdd] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register,reset, handleSubmit, formState: { errors } } = useForm();
   const [payload, setPayload] = useState(null);
   const [showDelete, setShowDelete] = useState(false);
   const [showSave, setShowSave] = useState(false);
+
   const deleteOptions = {
-    path: '/api/admins',
+    path: '/api/accounts',
     method: 'DELETE',
   }
   const saveOptions = {
-    path: '/api/admins',
+    path: '/api/accounts',
     method: 'PUT',
   }
   const onAddClick = async () => {
@@ -182,40 +195,22 @@ const EnhancedTableToolbar = (props) => {
       }
   }
   const onSave = async () => {
-    if(name == '' && email == '' && num==''){
+    if(name == '' && num==''){
       toast('No changes made.')
       onCancel();
     }
-    const validateEmail= () => {
-      return email.match(
-        /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-    };
-    if(validateEmail || email == ''){
-      num=selected[0].id
-      if(name==''){
-        name=selected[0].name
-      }
-      if(email==''){
-        email=selected[0].email
-      }
+    else{
+        // Make change to payload here, add the old row and the new row. edit the Dialog Modal so that it reflects these changes
       setPayload({
-        old: selected,
-        new:{
-          id:num,
-          name:name,
-          email:email,
-        }        
+        id:selected[0].id,
+        name:name,
       })
       setShowSave(true);
-
-    }else{
-      toast("Not a valid email address.")
     }
     
   }
   const onSubmit = async data => {
-    const req = await fetch('/api/admins', {
+    const req = await fetch('/api/accounts', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -225,6 +220,7 @@ const EnhancedTableToolbar = (props) => {
         }) 
     const json = await req.json()
     toast(json.message)
+    reset()
     if(json.success == true){
       var logContent = {
         group:'admins',
@@ -244,7 +240,7 @@ const EnhancedTableToolbar = (props) => {
         const loggitJson = await loggit.json()
         if(loggitJson.success==true){
           setShowAdd(false)
-          router.reload(window.location.pathname);
+          router.push(window.location.pathname);
         } 
       }
   }
@@ -300,7 +296,7 @@ const EnhancedTableToolbar = (props) => {
             </Tooltip>            
             </>
           ):(
-            <Tooltip onClick={()=>{onEdit()}} title="Edit">
+            <Tooltip onClick={()=>{onEdit()}} title="Edit Account Name">
             <IconButton>
               <EditIcon />
             </IconButton>
@@ -322,16 +318,13 @@ const EnhancedTableToolbar = (props) => {
       </>
       ) : (
         <>
-          <FormModal onClose={() => setShowAdd(false)} show={showAdd} payload={payload} options={saveOptions} onSubmit={handleSubmit(onSubmit)} title={"Add Account"}>
-            <form>
-                  <div>
-                    <Input type="text" placeholder="First Last" {...register("name", {required:true})} />
-                    <br/>
-                    <br/>
-                    <Input type="email" placeholder="example@cmscom.co" {...register("email", {required:true, })} />
-                  </div>                
-              </form>
-            </FormModal>
+          <FormModal onClose={() => setShowAdd(false)} show={showAdd} onSubmit={handleSubmit(onSubmit)} title={"Add Account"}>
+            <form  onSubmit={handleSubmit(onSubmit)}>
+              <Input type="text" placeholder="Account Number"inputProps={{ maxLength: 4 }} {...register("id", {required: true})} />
+              <br/> <br/>
+              <Input type="text" placeholder="Account Name" {...register("name", {required:true})} />
+            </form>
+          </FormModal>
           <Tooltip onClick={()=>{onAddClick()}} title="Add">
             <IconButton>
               <AddIcon />
@@ -348,15 +341,165 @@ EnhancedTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
 };
 
+function Row(props){
+  const [open, setOpen] = useState(false);
+  const { row, labelId, AccountName, setAccountName, session, router } = props;
+  const { register, reset, handleSubmit, formState: { errors } } = useForm();
+  const [showAdd, setShowAdd] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [payload, setPayload] = useState(null);
+  const deleteOptions = {
+    path: '/api/users',
+    method: 'DELETE',
+  }
+  const onAddClick = async () => {
+    setShowAdd(true);
+  }
+  const onDelete = async (name, email) => {
+
+    setPayload({
+      name:name,
+      email:email,
+      accountNumber: row.id,
+    })
+    setShowDelete(true)
+  
+  }
+  const onSubmit = async data => {
+    const req = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name:data.name,
+          email:data.email,
+          accountNumber: row.id,
+        }),
+    }) 
+    const json = await req.json()
+    toast(json.message)
+    reset()
+    if(json.success == true){
+      var logContent = {
+        group:'Account Users',
+        data: JSON.stringify({
+          name:data.name,
+          email:data.email,
+          accountNumber: row.id,
+        }),
+      }
+      const loggit = await fetch('/api/logs', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body:JSON.stringify({
+          user:session.user.email,
+          payload:JSON.stringify(logContent), 
+        }),
+        })
+        const loggitJson = await loggit.json()
+        if(loggitJson.success==true){
+          setShowAdd(false)
+          router.push(window.location.pathname);
+        } 
+      }
+  }
+  return (
+    <>
+    <TableCell
+      component="th"
+      id={labelId}
+      scope="row"
+      padding="none"
+      colSpan={1}
+    >
+        {row.id}
+    </TableCell>        
+    <TableCell align="right" colSpan={1}>
+      <div name={row.id} style={{display:''}}>
+        {row.name}
+      </div>
+      <div name={row.id} style={{display:'none'}}>
+      <Input
+        type='text'                           
+        onChange={(e)=>{setAccountName(e.target.value)}} 
+        value={AccountName} 
+        placeholder={row.name}
+        ></Input>
+      </div>  
+    </TableCell>
+    <TableCell align="right" colSpan={1}>
+      <IconButton
+        aria-label="expand row"
+        size="small"
+        onClick={() => setOpen(!open)}
+      >
+        {open ? <KeyboardArrowUpIcon /> : (<KeyboardArrowDownIcon/>)}
+      </IconButton>
+    </TableCell>    
+    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={2}>
+    {open ? <></> : <h5>{row.users.length} users</h5>}
+      <Collapse in={open} timeout="auto" unmountOnExit>
+        <Box sx={{ margin: 0.5 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <FormModal onClose={() => setShowAdd(false)} show={showAdd} onSubmit={handleSubmit(onSubmit)} title={"Add User to Account"}>
+                  <form  onSubmit={handleSubmit(onSubmit)}>
+                    <Input type="text" placeholder="Name" {...register("name", {required: true})} />
+                    <br/> <br/>
+                    <Input type="text" placeholder="Email" {...register("email", {required:true})} />
+                  </form>
+                </FormModal>
+                <Tooltip onClick={()=>{onAddClick()}} title="Add">
+                  <IconButton>
+                    <AddIcon />
+                  </IconButton>
+                </Tooltip>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+            {row.users.map((userRow) => (
+              <TableRow>
+                <TableCell component="th" scope="row">
+                  {userRow.name}
+                </TableCell>
+                <TableCell>{userRow.email}</TableCell>
+                <Tooltip onClick={()=>{onDelete(userRow.name,userRow.email)}} title="Delete">
+                  <IconButton>
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              </TableRow>
+            ))}
+            </TableBody>
+          </Table>
+          <DialogModal show={showDelete} onClose={()=>setShowDelete(false)} session={session} payload={payload} options={deleteOptions} title={"Delete selected?"}>
+            Are you sure? This action cannot be undone.
+          </DialogModal>
+        </Box>
+      </Collapse>
+    </TableCell>
+    
+    </>   
+  );
+}
+
 export default function EnhancedTable(props) {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('id');  
   const [edit, setEdit] = useState(false);
   const [selected, setSelected] = useState([]);  
-  const [AccountNumber,setAccountNumber] = useState('');
+  const [AccountNumber] = useState('');
   const [AccountName,setAccountName] = useState('');
-  const [AccountEmail,setAccountEmail] = useState('');
   const [page, setPage] = useState(0);
+  const router = useRouter()
   
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const { rows, title, session} = props;
@@ -377,7 +520,6 @@ export default function EnhancedTable(props) {
       setSelected([]);
     }    
   };
-  //need to change to allow all data to be selected
   const handleClick = (event, row) => {
     var selectedIndex = -2;
     if(!edit){      
@@ -441,8 +583,8 @@ export default function EnhancedTable(props) {
         setEdit={setEdit}
         num={AccountNumber}
         name={AccountName}
-        email={AccountEmail}
         session={session}
+        router={router}
         />
         <TableContainer sx={{ maxHeight: 500 }}>
           <Table
@@ -476,43 +618,17 @@ export default function EnhancedTable(props) {
                       key={row.id}
                       selected={isItemSelected}
                     >
-                     
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                          color="primary"
-                          checked={isItemSelected}
-                          inputProps={{
-                            'aria-labelledby': labelId,
-                          }}
-                        />
-                      </TableCell>
-                             
-                      <TableCell align="right">
-                      <div name={row.id} style={{display:''}}>
-                          {row.name}
-                        </div>
-                        <div name={row.id} style={{display:'none'}}>
-                        <Input
-                          type='text'                           
-                          onChange={(e)=>{setAccountName(e.target.value)}} 
-                          value={AccountName} 
-                          placeholder={row.name}
-                          ></Input>
-                        </div>  
-                      </TableCell>
-                      <TableCell align="right">
-                      <div name={row.id} style={{display:''}}>
-                          {row.email}
-                        </div>
-                        <div name={row.id} style={{display:'none'}}>
-                        <Input     
-                          type='email'                      
-                          onChange={(e)=>{setAccountEmail(e.target.value)}} 
-                          value={AccountEmail}   
-                          placeholder={row.email}
-                          ></Input>
-                        </div>  
-                      </TableCell>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        color="primary"
+                        checked={isItemSelected}
+                        inputProps={{
+                          'aria-labelledby': labelId,
+                        }}
+                      />
+                    </TableCell>
+                    <Row key={row.name} row={row} labelId={labelId} AccountName={AccountName} AccountNumber={AccountNumber} setAccountName={setAccountName} session={session} router={router}/>
+                           
                     </TableRow>
                   );
                 })}

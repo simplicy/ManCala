@@ -1,5 +1,5 @@
 
-import styles from '../styles/custom.module.css'
+import styles from '../../styles/custom.module.css'
 export default function Footer(){
     return (
         <>

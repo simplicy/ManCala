@@ -1,7 +1,7 @@
 import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
-import LogTable from '../../components/LogTable'
+import LogTable from '../../components/tables/LogTable'
 
 export default function admins({accounts: logList}) {
   const { data: session, status } = useSession();

@@ -1,9 +1,7 @@
 import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
-import { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import AccountTable from '../../components/AccountTable'
+import AccountTable from '../../components/tables/AccountTable'
 export default function manage({accounts}) {
   const { data: session, status } = useSession()
   const isAdmin = true;

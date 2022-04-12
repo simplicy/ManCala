@@ -19,6 +19,7 @@
     "express": "^4.17.1",
     "firebase": "^9.6.1",
     "firebase-admin": "^10.0.1",
+    "googleapis": "^99.0.0",
     "material-icons": "^1.10.4",
     "moment": "^2.29.1",
     "mongoose": "^6.1.3",

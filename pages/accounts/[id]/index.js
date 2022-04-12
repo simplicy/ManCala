@@ -3,9 +3,8 @@ import Calendar from '../../../components/Calendar'
 import { useSession } from "next-auth/react"
 import Mongo from '../../../lib/Mongo'
 
-export default function AccoundID({account}) {
+export default function AccoundID({account, calendars}) {
   //If session is there, or user is signed in will serve them this page. 
-  console.log(account)
   const { data: session, status } = useSession()
   if (status === "loading") {
     return (
@@ -18,11 +17,12 @@ export default function AccoundID({account}) {
       <>
           <main className={styles.main}>
           <h1 className={styles.title}>
-              {account[0].name}
+              {account.name}
           </h1>
 
          
             <Calendar
+              calendars={calendars}
               account={account}
             />
          
@@ -31,7 +31,7 @@ export default function AccoundID({account}) {
     ) 
   }
   return (
-    <div>
+    <>
       <main className={styles.main}>
         <h1 className={styles.title}>
             Access Denied!
@@ -40,7 +40,7 @@ export default function AccoundID({account}) {
             <h2>Please Sign in using your company email to continue. &rarr;</h2>
         </div>        
       </main>
-    </div>
+    </>
   )
 }
 
@@ -50,16 +50,8 @@ export async function getServerSideProps(params) {
     throw new Error 
     "Database is not connected!"
   }
-  const cals = await fetch('http://localhost:3080/api/calendars/', {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      email:'ratchetclnk55@gmail.com',
-    },
-  })
   
-  const res = await fetch('http://localhost:3000/api/accounts/', {
+  const db = await fetch('http://localhost:3000/api/accounts/', {
     method: 'GET',
     headers: {
       Accept: 'application/json',
@@ -67,10 +59,25 @@ export async function getServerSideProps(params) {
       id:params.query.id,
     },
   })
-  const payload = await (res.json())
-  const account = payload.data || {}
+  
+  const dbResponse = await (db.json())
+  const account = dbResponse.data[0] || {}
 
-  return { props: { account} }
+  const userEmails = account.users.map(data =>{
+    return data.email
+  }).join(",")
+
+  const api = await fetch('http://localhost:3000/api/events/?emails='+userEmails, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  })
+  const apiResponse = await (api.json())
+  const calendars = apiResponse.data || {}
+
+  return { props: { account, calendars} }
 }
 
 

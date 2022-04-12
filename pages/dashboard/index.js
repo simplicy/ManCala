@@ -1,6 +1,5 @@
 import styles from '../../styles/custom.module.css'
 import { useSession, signIn, signOut } from "next-auth/react"
-import dbConnect from '../../lib/Mongo'
 import { useRouter } from 'next/router'
 
 export default function Home() {

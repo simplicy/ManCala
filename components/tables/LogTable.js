@@ -21,11 +21,11 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete';
 import { visuallyHidden } from '@mui/utils';
 import AddIcon from '@mui/icons-material/Add';
-import FormModal from './FormModal'
+import FormModal from '../modals/FormModal'
 import { useForm } from "react-hook-form";
 import toast, { Toaster } from 'react-hot-toast';
 import Input from '@mui/material/Input';
-import DeleteModal from './DialogModal';
+import DeleteModal from '../modals/DialogModal';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { set } from 'mongoose';
