@@ -1,100 +1,77 @@
-import Account from '../../lib/models/account.model'
+const path = require('path');
+const {google} = require('googleapis');
+// place holder for the data
+const users = [];
+//------------------Functions----------------------------//
 
-const createAccount = async(req,res) => {
-    console.log("Creating Account")
-    var account = new Account({
-        accountID: req.body.accountID,
-        friendlyName: req.body.friendlyName,        
-        calendarID: req.body.calendarID
-    });
-    try{
-        console.log(account)
-        Account.find({accountID:account.accountID}, (error, data)=>{
-            if(data.length!=0 || error)
-                res.status(500).send({
-                    success:false,
-                    message: error || "Account number exists already, please use another one."
-                })
-            else
-                account.save(account, (data) => {
-                    res.status(200).send({
-                        success: true,
-                        data: data,
-                        message:"Account created successfully."
-                    })
-                })
-        })
-    } catch (error) {
-        res.status(400).send({
-            success: false,
-            message: error,
-        })
-    }
-} 
+//More error logging needed
+async function getCalendarClient(){
+  // Create a new JWT client using the key file downloaded from the Google Developer Console
+  const auth = new google.auth.GoogleAuth({
+    keyFile: path.join(process.env.CRED_PATH, 'cred.json'),
+    scopes: 'https://www.googleapis.com/auth/calendar',
+  });
 
-const findAllAccounts = async(req,res) => {
-    console.log("Finding Accounts")
-    var condition = {};
+  const client = await auth.getClient();
+  // Obtain a new calendar client, making sure you pass along the auth client
+  const calendarClient = await google.calendar({
+    version: 'v3',
+    auth: client,
+  });
+  return calendarClient;
+}
+
+async function getCalendarEvents(emails) {
+    const gClient = await getCalendarClient();
+    //Check if the calendar is shared with the service account
+    const eventList = await Promise.all(emails.map(async email =>{
+        const response = await gClient.events.list({
+            calendarId: email,
+            timeMin: (new Date()).toISOString(),
+            maxResults: 5,
+            singleEvents: true,
+            orderBy: 'startTime',
+        });
+        //console.log(response)
+        return response.data
+    }))
+    return eventList
+}
+
+const getEvents = async(req,res) => {
+    console.log("Getting Events")
+    const emails = req.query.emails.split(",")
     try {
-        Account.find(condition,(error,data) => {
-            res.status(200).send({
-                success: true,
-                data: data,
-            })
+        const events = await getCalendarEvents(emails);
+        res.status(200).send({
+            success: true,
+            data: events,
         })
+        
     }  catch (error) {
         res.status(500).send({
             success:false,
             message:
-              error.message || "Some error occurred while retrieving products."
+              error.message || "Some error occurred while retrieving events."
           });
     }
 }
 
-const deleteAccount = async(req,res) => {
-    const toDelete = req.body;
-    console.log(toDelete.length)
+const createAccount = async(req,res) => {
     
-   Account.deleteMany({accountID:{$in:toDelete}}, (error,data)=>{
-        if(error){
-            res.status(500).send({
-                success:false,
-                message:
-                  error.message || "Some Some error ocurred while deleting products."
-              });
-        }
-        else{
-            res.send({
-                success: true,
-                message: "Account(s) deleted successfully!"
-            });
-        }
-   })
+} 
+
+const deleteAccount = async(req,res) => {
+    
 }
 
 const updateAccount = async(req,res) => {
-   const filter = { accountID: req.body.accountID };
-   const update = { friendlyName:req.body.friendlyName, calendarID:req.body.calendarID };
-   Account.findOneAndUpdate(filter, update, (error,data)=>{
-        if(error){
-            res.status(500).send({
-                success:false,
-                message:
-                  error.message || "Some Some error ocurred while updating the account."
-              });
-        }
-        else{
-            res.send({
-                success: true,
-                message: "Account updated successfully!"
-            });
-        }
-   })
+
 }
     
 
 const methods = {
-    GET: findAllAccounts,
+    GET: getEvents,
     PUT: updateAccount,
     POST: createAccount,
     DELETE: deleteAccount,

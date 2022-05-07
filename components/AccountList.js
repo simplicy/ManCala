@@ -21,7 +21,7 @@ const AccountList = ({accounts}) => {
                 type="text" 
                 onChange={(e)=>{handleSearch(e.target.value)}}/>
             </div>          
-            <div className={styles.yscroll, styles.accGrid}>
+            <div className={ styles.accGrid}>
                 <div className={styles.grid}>
                 { AllAccounts.length > 0 ? (
                     AllAccounts.filter(item => { return (item.name.toLowerCase().includes(searchQuery) || item.id.includes(searchQuery))}).map((acc, index) => (

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import TextField from '@mui/material/TextField';
 import { Grid } from '@mui/material';
 
@@ -8,37 +8,86 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputLabel from '@mui/material/InputLabel';
 
-const DialogModal = ({show, onClose, payload, title, editing}) =>  {
+
+const DialogModal = ({show, onClose, payload, title, editing, account}) =>  {
+  const { register, reset, setValue, handleSubmit, control, formState: { errors } } = useForm({
+    defaultValues:{
+      eventTitle:"",
+      date:"",
+      startTime: "--:--",
+      endTime: "--:--",
+      details: "",
+      attendees: "",
+      organizer:"",
+      addr1: "",
+      city: "",
+      state: "",
+      zip: "",
+    }
+  });
+
   const handleClose = (e) => {
-    document.getElementById("eventForm").reset();
-    e.preventDefault();
+    reset()
     onClose();
   };
-  const { register, setValue, handleSubmit, formState: { errors } } = useForm();
+  
   const onSubmit =  (data) => {
+
+
     console.log(data)
-    var form = document.getElementById("eventForm");
-    form.reset();
-    onClose();  
+    reset();
+    handleClose();
   };
 
-  setValue("date",payload.event.date);
-  if((payload.event.start && payload.event.end) != "00:00" && "24:00"){
-    setValue("startTime",payload.event.start);
-    setValue("endTime",payload.event.end);
-  }  
+  if(editing && show){
+    setValue("date",payload.date);
+    if((payload.start && payload.end) != "00:00" && "24:00"){
+      setValue("startTime",payload.start);
+      setValue("endTime",payload.end);
+    }  
+  }
+  else if(show){
+    setValue("date",new Date(payload.start).toISOString().replace(/T.*/,'').split('-').join('-'));
+    setValue("eventTitle", payload.title)
+    setValue("details",payload.details);
+    setValue("startTime",(new Date(payload.start)).toTimeString().split(' ')[0]);
+    setValue("endTime",(new Date(payload.end)).toTimeString().split(' ')[0]);
+
+    if(payload.address){
+      var [addr1, city, stateZip, country] = payload.address.split(",")
+      var [state, zip] = stateZip.substring(1).split(" ")
+      setValue("addr1",addr1);
+      setValue("city",city)
+      setValue("state",state)
+      setValue("zip",zip)
+    }
+    if(payload.attendees){
+      var attList =""; 
+      payload.attendees.map(attendee => {
+        attList = attList.concat(attendee.email,"\n")
+      })
+      setValue("attendees", attList)
+    }
+
+  }
+  
+  
+
+  
   const viewEvent = (
-    <>
-    
-    </>
-  );
-  const editEvent = (
     <form id="eventForm" onSubmit={handleSubmit(onSubmit)}>
       <div>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <TextField 
+            <TextField
+              disabled={!editing}
+              control={control}
+              required
               sx={{ width: "100%" }}
               label="Title"
               variant="filled"
@@ -49,6 +98,9 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
           </Grid>
           <Grid item xs={4}>
             <TextField 
+              control={control}
+              disabled={!editing}
+              required
               id="date"
               label="Date"
               color="primary"
@@ -60,8 +112,11 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
           </Grid>
           <Grid item xs={4}>
             <TextField 
+              control={control}
+              disabled={!editing}
               id="startTime" 
               label="Start Time"
+              required
               variant="filled"
               sx={{ width: "100%" }}
               color="primary"
@@ -71,6 +126,9 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
           </Grid>
           <Grid item xs={4}>
             <TextField 
+              control={control}
+              disabled={!editing}
+              required
               id="endTime" 
               label="End Time"
               sx={{ width: "100%" }}
@@ -82,32 +140,63 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
           </Grid>
           <Grid item xs={6}>
             <TextField 
+              control={control}
+              disabled={!editing}
+              required
               label="Details"
               color="primary"
               sx={{ width: "100%" }}
               multiline
-              rows={4}
+              rows={7}
               variant="filled"
               type="text"
               placeholder={('Details or Notes about this Event.')} 
               {...register("details")} 
             />
           </Grid>
-          <Grid item xs={6}>
-            <TextField 
-              label="Attendee Emails"
-              color="primary"
-              sx={{ width: "100%" }}
-              variant="filled"
-              multiline            
-              rows={4}
-              type="text"  
-              placeholder={('(Each on a new line)')} 
-              {...register("attendees")} 
-            />
+          <Grid container item spacing={1} xs={6}>            
+            <Grid item xs={12}>
+                <TextField
+                  control={control}
+                  disabled={!editing} 
+                  label="Organizer"
+                  required
+                  select
+                  color="primary"
+                  sx={{ width: "100%" }}
+                  variant="filled"
+                  {...register("organizer")}                   
+                >
+                {account.users.map((item,index)=>{
+                  return (
+                    <MenuItem value={index}>
+                      {item.email}
+                    </MenuItem>
+                  );
+                })}
+                </TextField>
+              </Grid>
+
+            <Grid item xs={12}>
+              <TextField 
+                control={control}
+                disabled={!editing} 
+                label="Attendee Emails"
+                color="primary"
+                sx={{ width: "100%" }}
+                variant="filled"
+                multiline            
+                rows={4}
+                type="text"  
+                placeholder={('(Each on a new line)')} 
+                {...register("attendees")} 
+              />
+            </Grid>
           </Grid>
           <Grid item xs={12}>
             <TextField
+              control={control}
+              disabled={!editing}
               label="Address 1"
               variant="filled"
               sx={{ width: "100%" }}
@@ -116,18 +205,10 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
               {...register("addr1")} 
             />
           </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Address 2"
-              variant="filled"
-              sx={{ width: "100%" }}
-              color="primary"
-              type="text"
-              {...register("location")} 
-            />
-          </Grid>
           <Grid item xs={4}>
             <TextField
+              control={control}
+              disabled={!editing}
               label="City"
               variant="filled"
               sx={{ width: "100%" }}
@@ -138,6 +219,8 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
           </Grid>          
           <Grid item xs={4}>
             <TextField
+              control={control}
+              disabled={!editing}
               label="State"
               variant="filled"
               sx={{ width: "100%" }}
@@ -148,6 +231,8 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
           </Grid>
           <Grid item xs={4}>
             <TextField
+              control={control}
+              disabled={!editing}
               label="Zip Code"
               variant="filled"
               sx={{ width: "100%"}}
@@ -180,7 +265,7 @@ const DialogModal = ({show, onClose, payload, title, editing}) =>  {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            {editEvent}
+           {viewEvent}            
           </DialogContentText>
         </DialogContent>
       </Dialog>

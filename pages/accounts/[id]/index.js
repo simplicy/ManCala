@@ -67,7 +67,7 @@ export async function getServerSideProps(params) {
     return data.email
   }).join(",")
 
-  const api = await fetch('http://localhost:3000/api/events/?emails='+userEmails, {
+  const api = await fetch('http://localhost:3000/api/calendars/?emails='+userEmails, {
     method: 'GET',
     headers: {
       Accept: 'application/json',
