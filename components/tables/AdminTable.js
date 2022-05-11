@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/router';
@@ -68,7 +68,7 @@ function EnhancedTableHead(props) {
     onRequestSort(event, property);
   };
   const headCells = [
-    
+
     {
       id: 'name',
       numeric: true,
@@ -82,7 +82,7 @@ function EnhancedTableHead(props) {
       label: 'Email',
     },
   ];
-  
+
 
   return (
     <TableHead>
@@ -153,79 +153,79 @@ const EnhancedTableToolbar = (props) => {
     setShowAdd(true);
   }
   const onDelete = async () => {
-      setPayload(selected)
-      setShowDelete(true)
-    
+    setPayload(selected)
+    setShowDelete(true)
+
   }
-  const onEdit = async () => {    
-    if(selected.length==1){
+  const onEdit = async () => {
+    if (selected.length == 1) {
       setEdit(true)
       var e = document.getElementsByName(selected[0].id)
-      for(var n = 0; n < e.length; n=n+2){
-        e[n].style.display="none"
-        e[n+1].style.display=""
+      for (var n = 0; n < e.length; n = n + 2) {
+        e[n].style.display = "none"
+        e[n + 1].style.display = ""
       }
     }
-    else if(selected.length>1){
+    else if (selected.length > 1) {
       setEdit(false)
       toast("Only 1 account can be edited at a time.")
-    }       
+    }
   }
   const onCancel = async () => {
     setEdit(false)
     var e = document.getElementsByName(selected[0].id)
-      for(var n = 0; n < e.length; n=n+2){
-        e[n].style.display=""
-        e[n+1].style.display="none"
-      }
+    for (var n = 0; n < e.length; n = n + 2) {
+      e[n].style.display = ""
+      e[n + 1].style.display = "none"
+    }
   }
   const onSave = async () => {
-    if(name == '' && email == '' && num==''){
+    if (name == '' && email == '' && num == '') {
       toast('No changes made.')
       onCancel();
     }
-    const validateEmail= () => {
+    const validateEmail = () => {
       return email.match(
         /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       );
     };
-    if(validateEmail || email == ''){
-      num=selected[0].id
-      if(name==''){
-        name=selected[0].name
+    if (validateEmail || email == '') {
+      num = selected[0].id
+      if (name == '') {
+        name = selected[0].name
       }
-      if(email==''){
-        email=selected[0].email
+      if (email == '') {
+        email = selected[0].email
       }
       setPayload({
         old: selected,
-        new:{
-          id:num,
-          name:name,
-          email:email,
-        }        
+        new: {
+          id: num,
+          name: name,
+          email: email,
+        }
       })
       setShowSave(true);
 
-    }else{
+    } else {
       toast("Not a valid email address.")
     }
-    
+
   }
   const onSubmit = async data => {
     const req = await fetch('/api/admins', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        }) 
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
     const json = await req.json()
     toast(json.message)
-    if(json.success == true){
+    if (json.success == true) {
       var logContent = {
-        group:'admins',
+        group: 'admins',
         data: JSON.stringify(data),
       }
       const loggit = await fetch('/api/logs', {
@@ -234,17 +234,17 @@ const EnhancedTableToolbar = (props) => {
           Accept: 'application/json',
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body:JSON.stringify({
-          user:session.user.email,
-          payload:JSON.stringify(logContent), 
+        body: JSON.stringify({
+          user: session.user.email,
+          payload: JSON.stringify(logContent),
         }),
-        })
-        const loggitJson = await loggit.json()
-        if(loggitJson.success==true){
-          setShowAdd(false)
-          router.reload(window.location.pathname);
-        } 
+      })
+      const loggitJson = await loggit.json()
+      if (loggitJson.success == true) {
+        setShowAdd(false)
+        router.reload(window.location.pathname);
       }
+    }
   }
   return (
     <Toolbar
@@ -279,58 +279,58 @@ const EnhancedTableToolbar = (props) => {
 
       {numSelected > 0 ? (
         <>
-        {numSelected == 1 ? (
-          <>
-          {edit ? (
+          {numSelected == 1 ? (
             <>
-            <Tooltip onClick={()=>{onCancel()}} title="Cancel">
-            <IconButton>
-              <CancelIcon />
-            </IconButton>
-            </Tooltip>
-            <DialogModal show={showSave} onClose={()=>setShowSave(false)} session={session} payload={payload} options={saveOptions} title={"Save changes?"}>
-              Are you sure you want to overwrite this row?
-            </DialogModal>
-            <Tooltip onClick={()=>{onSave()}} title="Save">
-            <IconButton>
-              <SaveIcon />
-            </IconButton>
-            </Tooltip>            
+              {edit ? (
+                <>
+                  <Tooltip onClick={() => { onCancel() }} title="Cancel">
+                    <IconButton>
+                      <CancelIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <DialogModal show={showSave} onClose={() => setShowSave(false)} session={session} payload={payload} options={saveOptions} title={"Save changes?"}>
+                    Are you sure you want to overwrite this row?
+                  </DialogModal>
+                  <Tooltip onClick={() => { onSave() }} title="Save">
+                    <IconButton>
+                      <SaveIcon />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              ) : (
+                <Tooltip onClick={() => { onEdit() }} title="Edit">
+                  <IconButton>
+                    <EditIcon />
+                  </IconButton>
+                </Tooltip>
+              )
+              }
             </>
-          ):(
-            <Tooltip onClick={()=>{onEdit()}} title="Edit">
-            <IconButton>
-              <EditIcon />
-            </IconButton>
-            </Tooltip>
-            )
-          }        
-          </>
-          ):(
+          ) : (
             null
-          )}        
-        <DialogModal show={showDelete} onClose={()=>setShowDelete(false)} session={session} payload={payload} options={deleteOptions} title={"Delete selected?"}>
-          Are you sure? This action cannot be undone.
-        </DialogModal>
-        <Tooltip onClick={()=>{onDelete()}} title="Delete">
-          <IconButton>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>        
-      </>
+          )}
+          <DialogModal show={showDelete} onClose={() => setShowDelete(false)} session={session} payload={payload} options={deleteOptions} title={"Delete selected?"}>
+            Are you sure? This action cannot be undone.
+          </DialogModal>
+          <Tooltip onClick={() => { onDelete() }} title="Delete">
+            <IconButton>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </>
       ) : (
         <>
           <FormModal onClose={() => setShowAdd(false)} show={showAdd} payload={payload} options={saveOptions} onSubmit={handleSubmit(onSubmit)} title={"Add Account"}>
             <form>
-                  <div>
-                    <Input type="text" placeholder="First Last" {...register("name", {required:true})} />
-                    <br/>
-                    <br/>
-                    <Input type="email" placeholder="example@cmscom.co" {...register("email", {required:true, })} />
-                  </div>                
-              </form>
-            </FormModal>
-          <Tooltip onClick={()=>{onAddClick()}} title="Add">
+              <div>
+                <Input type="text" placeholder="First Last" {...register("name", { required: true })} />
+                <br />
+                <br />
+                <Input type="email" placeholder="example@cmscom.co" {...register("email", { required: true, })} />
+              </div>
+            </form>
+          </FormModal>
+          <Tooltip onClick={() => { onAddClick() }} title="Add">
             <IconButton>
               <AddIcon />
             </IconButton>
@@ -338,7 +338,7 @@ const EnhancedTableToolbar = (props) => {
         </>
       )}
     </Toolbar>
-    
+
   );
 };
 
@@ -348,24 +348,24 @@ EnhancedTableToolbar.propTypes = {
 
 export default function EnhancedTable(props) {
   const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('id');  
+  const [orderBy, setOrderBy] = useState('id');
   const [edit, setEdit] = useState(false);
-  const [selected, setSelected] = useState([]);  
-  const [AccountNumber,setAccountNumber] = useState('');
-  const [AccountName,setAccountName] = useState('');
-  const [AccountEmail,setAccountEmail] = useState('');
+  const [selected, setSelected] = useState([]);
+  const [AccountNumber, setAccountNumber] = useState('');
+  const [AccountName, setAccountName] = useState('');
+  const [AccountEmail, setAccountEmail] = useState('');
   const [page, setPage] = useState(0);
-  
+
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const { rows, title, session} = props;
+  const { rows, title, session } = props;
   const handleRequestSort = (event, property) => {
-  const isAsc = orderBy === property && order === 'asc';
+    const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
-  
+
   const handleSelectAllClick = (event) => {
-    if(!edit){
+    if (!edit) {
       if (event.target.checked) {
         const newSelecteds = rows.map((n) => n);
         setSelected(newSelecteds);
@@ -373,20 +373,20 @@ export default function EnhancedTable(props) {
         return;
       }
       setSelected([]);
-    }    
+    }
   };
   //need to change to allow all data to be selected
   const handleClick = (event, row) => {
     var selectedIndex = -2;
-    if(!edit){      
-      selected.find((data,index)=>{
-        if(data.id==row.id){
-          selectedIndex=index;
-        }          
+    if (!edit) {
+      selected.find((data, index) => {
+        if (data.id == row.id) {
+          selectedIndex = index;
+        }
       })
-      if(selectedIndex === -2){
-        selectedIndex=-1;
-      }      
+      if (selectedIndex === -2) {
+        selectedIndex = -1;
+      }
       let newSelected = [];
       if (selectedIndex == -1) {
         newSelected = newSelected.concat(selected, row);
@@ -412,35 +412,35 @@ export default function EnhancedTable(props) {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  const isSelected = (row) =>{
-   const isSel = selected.find((data)=>{
-     if(data.id==row.id)
-      return true;
-    return false;
-   })
-    if(typeof isSel == 'undefined')
+  const isSelected = (row) => {
+    const isSel = selected.find((data) => {
+      if (data.id == row.id)
+        return true;
+      return false;
+    })
+    if (typeof isSel == 'undefined')
       return false;
     return true;
   }
-    
+
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   return (
-    <Box sx={{ width: '75%'}}>
+    <Box sx={{ width: '75%' }}>
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <Toaster/>
-        <EnhancedTableToolbar 
-        numSelected={selected.length} 
-        content={title} 
-        selected={selected} 
-        edit={edit} 
-        setEdit={setEdit}
-        num={AccountNumber}
-        name={AccountName}
-        email={AccountEmail}
-        session={session}
+        <Toaster />
+        <EnhancedTableToolbar
+          numSelected={selected.length}
+          content={title}
+          selected={selected}
+          edit={edit}
+          setEdit={setEdit}
+          num={AccountNumber}
+          name={AccountName}
+          email={AccountEmail}
+          session={session}
         />
         <TableContainer sx={{ maxHeight: 500 }}>
           <Table
@@ -474,7 +474,7 @@ export default function EnhancedTable(props) {
                       key={row.id}
                       selected={isItemSelected}
                     >
-                     
+
                       <TableCell padding="checkbox">
                         <Checkbox
                           color="primary"
@@ -484,32 +484,32 @@ export default function EnhancedTable(props) {
                           }}
                         />
                       </TableCell>
-                             
+
                       <TableCell align="right">
-                      <div name={row.id} style={{display:''}}>
+                        <div name={row.id} style={{ display: '' }}>
                           {row.name}
                         </div>
-                        <div name={row.id} style={{display:'none'}}>
-                        <Input
-                          type='text'                           
-                          onChange={(e)=>{setAccountName(e.target.value)}} 
-                          value={AccountName} 
-                          placeholder={row.name}
+                        <div name={row.id} style={{ display: 'none' }}>
+                          <Input
+                            type='text'
+                            onChange={(e) => { setAccountName(e.target.value) }}
+                            value={AccountName}
+                            placeholder={row.name}
                           ></Input>
-                        </div>  
+                        </div>
                       </TableCell>
                       <TableCell align="right">
-                      <div name={row.id} style={{display:''}}>
+                        <div name={row.id} style={{ display: '' }}>
                           {row.email}
                         </div>
-                        <div name={row.id} style={{display:'none'}}>
-                        <Input     
-                          type='email'                      
-                          onChange={(e)=>{setAccountEmail(e.target.value)}} 
-                          value={AccountEmail}   
-                          placeholder={row.email}
+                        <div name={row.id} style={{ display: 'none' }}>
+                          <Input
+                            type='email'
+                            onChange={(e) => { setAccountEmail(e.target.value) }}
+                            value={AccountEmail}
+                            placeholder={row.email}
                           ></Input>
-                        </div>  
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -527,14 +527,14 @@ export default function EnhancedTable(props) {
           </Table>
         </TableContainer>
         <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
-        component="div"
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </Paper>
     </Box>
   );

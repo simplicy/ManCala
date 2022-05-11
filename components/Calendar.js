@@ -5,7 +5,9 @@ import EventModal from "./modals/EventModal"
 import moment from "moment";
 import React, {useState, useEffect} from "react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-
+import { useCallback } from "react";
+import { Toaster } from "react-hot-toast";
+import { useRouter } from 'next/router';
 const localizer = momentLocalizer(moment);
 
 //Returns an array of events given an array of calendars from the google
@@ -30,10 +32,12 @@ function getEvents(calendars, selected) {
             //converts googles dateTime to a valid date since date is
             if(data.start.date){
               newEvents.push({
+                eventID: data.id,
                 title: data.summary,
                 date: (new Date(data.start.date)).toDateString(),
                 start: moment(data.start.date).toDate(),
                 end: moment(data.start.date).toDate(),
+                organizer: data.creator.email,
                 allDay: true,
                 attendees: data.attendees,
                 details: data.description || "",
@@ -42,10 +46,12 @@ function getEvents(calendars, selected) {
             }
             else{
               newEvents.push({
+                eventID: data.id,
                 title: data.summary,
                 date: (new Date(data.start.dateTime)).toDateString(),
                 start: moment(data.start.dateTime).toDate(),
                 end: moment(data.end.dateTime).toDate(),
+                organizer: data.creator.email,
                 allDay: false,
                 attendees: data.attendees,
                 details: data.description || "",
@@ -65,7 +71,8 @@ function getEvents(calendars, selected) {
 
 //Calendar view that will be exported by the module
 export default function BigCalendar({account, calendars}){
-  const [editMode, setEditMode] = useState(false);
+  const router = useRouter();
+  const [newEventMode, setNewEventMode] = useState(false);
   const [init, setInit] = useState(false)
   const [showModal, setShowModal] = useState(false);
   const [selected, setSelected] = useState([]); 
@@ -77,7 +84,12 @@ export default function BigCalendar({account, calendars}){
   })
   //Initially fills the selected accounts list (select all) and loads the events into the calendar
   //Causes issues...
-  if(events != null && !events.length && !selected.length && init == false){
+  //check if calendar is empty and if it is disable ability to check off user on filter view
+  //Also make sure routes are checked so non admins do not have access to dashboard
+  //make first user to login with google the admin. lock down admin routes. 
+  if(calendars.length && events != null && 
+    !events.length && !selected.length && 
+    init == false){
     setInit(true)
     console.log("Reloaded")
     account.users.map(data=>{
@@ -88,21 +100,51 @@ export default function BigCalendar({account, calendars}){
 
   //When there is a select event this will show the editModal
   const onSelectEvent = data => { 
-    console.log(data)
-    setEditMode(false);
+    setNewEventMode(false);
     setNewEvent(data)
     setShowModal(true);
   }
+  
+  //Props for events in the calendar, can set styles from here
+  const eventPropGetter = useCallback(
+    (event, start, end, isSelected) => ({
+      ...(isSelected && {
+        style: {
+          backgroundColor: '#000',
+        },
+      }),
+      ...(moment(start).hour() < 12 && {
+        className: 'powderBlue',
+      }),
+      ...(event.title.includes('Meeting') && {
+        className: 'darkGreen',
+      }),
+    }),
+    []
+  )
 
-  const getEventProps = data => {
-
+  const reloadEvents = async () => {
+    const userEmails = account.users.map(data =>{
+      return data.email
+    }).join(",")
+  
+    const api = await fetch('http://localhost:3000/api/calendars/?emails='+userEmails, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
+    const apiResponse = await (api.json())
+    const newCals = apiResponse.data;
+    setEvents(getEvents(newCals, selected));
   }
 
   //On selecting a slot, will pop open a modal with selected time data prefilled
   const onSelectSlot = data => {
     const momentStart = moment(data.start), 
           momentEnd = moment(data.end);
-    setEditMode(true);
+    setNewEventMode(true);
     const details = {
       date: momentStart.format("YYYY-MM-DD"),
       start: momentStart.format("HH:mm"),
@@ -150,7 +192,8 @@ export default function BigCalendar({account, calendars}){
     //Return the calendar if events are not empty, else 
     return (
         <div>
-         <Grid container spacing={1}>
+          <Toaster/>
+         <Grid container overflow="hidden" spacing={1}>
          <Grid item xs={2}>
          <h4 style={{padding:"10px", marginLeft: "10px"}}>Filter View</h4>
          {account.users?.map((userRow, index) => {
@@ -173,7 +216,7 @@ export default function BigCalendar({account, calendars}){
 
             <Calendar
               defaultDate={moment().toDate()}
-              defaultView="month"
+              defaultView="week"
               drilldownView='day'
               views={['month','day','week']}
               events={events}
@@ -182,7 +225,7 @@ export default function BigCalendar({account, calendars}){
               onSelectSlot={(slotInfo)=>{onSelectSlot(slotInfo)}}
               onSelectEvent={(event)=>{onSelectEvent(event)}}
               onDoubleClickEvent={(event)=>{onSelectEvent(event)}}
-              eventPropGetter={(event)=>{getEventProps(event)}}
+              eventPropGetter={eventPropGetter}
               style={{ height: "30rem", width: "50rem" }}
             /> 
 
@@ -190,8 +233,9 @@ export default function BigCalendar({account, calendars}){
           <EventModal 
             show={showModal} 
             onClose={() => setShowModal(false)}
-            editing={editMode} 
+            newEventMode={newEventMode} 
             payload={newEvent}
+            reloadEvents={() => reloadEvents()}
             account={account}
           >
           </EventModal>    

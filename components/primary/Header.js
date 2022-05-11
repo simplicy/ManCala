@@ -21,7 +21,7 @@ export default function ButtonAppBar() {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static" sx={{backgroundColor:'gray'}}>
         <Toolbar>          
-          <Button color="inherit" variant='text' onClick={()=>{router.push("/accounts")}}>
+          <Button color="inherit" variant='text' onClick={()=>{router.push("/")}}>
             <Typography variant="h6"  component="div" sx={{ flexGrow: 1}}>              
                 Home              
             </Typography>          

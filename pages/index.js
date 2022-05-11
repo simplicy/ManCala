@@ -1,82 +1,69 @@
-import styles from '../styles/custom.module.css'
-import { useSession, signIn, signOut } from "next-auth/react"
-import { useRouter } from 'next/router'
+import styles from '/styles/custom.module.css'
+import { useSession } from "next-auth/react"
+import React from "react";
+import Mongo from '/lib/Mongo'
+import { useRouter } from 'next/router';
+import AccountList from '/components/AccountList'
+import { Card, Grid } from "@mui/material";
 
-export default function Home() {
+export default function Accounts({accounts}) {
+  const router = useRouter();
   const { data: session, status } = useSession()
-  const router = useRouter()
-  const isAdmin = true;
+  //If session is there, or user is signed in will serve them this page. 
   if (status === "loading") {
     return (
       null
     )
   }
+  //Returns this page if user is not signed in
   if(session){
-    if(isAdmin){
-      return (
-        <div className={styles.container}>
-          <main className={styles.main}>
-            <h1 className={styles.title}>
-              <a href="https://github.com/simplicy/next-calendar-manager">Calendar Manager</a>
-            </h1>
-  
-            <div className={styles.row} onClick={()=>{router.push("/accounts")}}>
-              <a className={styles.card}>
-                <h2>All Accounts &rarr;</h2>
-                <p>View a list of our client's calendars.</p>
-              </a>
-            </div>
-            <div className={styles.row} onClick={()=>{router.push("/dashboard")}}>  
-              <a className={styles.card}>
-                <h2>Dashboard &rarr;</h2>
-                <p>Access Administrative Dashboard.</p>
-              </a>
-            </div>
-          </main>
-        </div>
-      )
-    }
-    else{
-      return (
-        <div className={styles.container}>
-          <main className={styles.main}>
-            <h1 className={styles.title}>
-              <a href="https://github.com/simplicy/next-calendar-manager">Calendar Manager</a>
-            </h1>
-  
-            <div className={styles.row}>
-              <a href="/accounts" className={styles.card}>
-                <h2>All Accounts &rarr;</h2>
-                <p>View a list of our client's calendars.</p>
-              </a>
-            </div>
-          </main>
-        </div>
-      )
-    }
-  }
-  else{
     return (
-    <div className={styles.container}>
-        <main className={styles.main}>
-          <h1 className={styles.title}>
-            <a href="https://github.com/simplicy/next-calendar-manager">Calendar Manager</a>
-          </h1>
-
-          <div className={styles.grid}>
-            <h2>Please Sign in using your company email to continue. &rarr;</h2>
-          </div>
-        </main>
+      <div >
+        <Grid  container spacing={2}>
+          <Grid item xs={2}/>
+          <Grid item xs={8}>
+            <h1 className={styles.title}>
+                Accounts Page
+            </h1>
+            <AccountList accounts={accounts}/>
+          </Grid>
+          <Grid item xs={2}/>
+        </Grid>
       </div>
-    )}
+    )
+  }
+  return (
+    <div>
+      <main className={styles.main}>
+        <h1 className={styles.title}>
+            Access Denied!
+        </h1>
+        <div className={styles.grid}>
+            <h2>Please Sign in using your company email to continue. &rarr;</h2>
+        </div>        
+      </main>
+    </div>
+  )
 }
 
 export async function getServerSideProps(params) {
-  /* Can remove this when you get mongodb set up */
-
-  return {
-    props: {
-      
-    },
+  const mongoose = await Mongo()
+  if(!mongoose){
+    throw new Error 
+    "Database is not connected!"
   }
+  
+  const res = await fetch('http://localhost:3000/api/accounts', {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    }
+  })
+  const payload = await (res.json())
+  const accounts = payload.data || {}
+
+  return { props: { accounts} }
 }
+
+

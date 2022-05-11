@@ -24,6 +24,7 @@ export default function AccoundID({account, calendars}) {
             <Calendar
               calendars={calendars}
               account={account}
+              session={session}
             />
          
           </main>

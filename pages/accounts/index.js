@@ -4,6 +4,7 @@ import React from "react";
 import Mongo from '../../lib/Mongo'
 import { useRouter } from 'next/router';
 import AccountList from '../../components/AccountList'
+import { Card, Grid } from "@mui/material";
 
 export default function Accounts({accounts}) {
   const router = useRouter();
@@ -17,13 +18,17 @@ export default function Accounts({accounts}) {
   //Returns this page if user is not signed in
   if(session){
     return (
-      <div className={styles.container}>
-          <main className={styles.main}>
-          <h1 className={styles.title}>
-              Accounts Page
-          </h1>
-          <AccountList accounts={accounts}/>
-          </main>
+      <div >
+        <Grid  container spacing={2}>
+          <Grid item xs={2}/>
+          <Grid item xs={8}>
+            <h1 className={styles.title}>
+                Accounts Page
+            </h1>
+            <AccountList accounts={accounts}/>
+          </Grid>
+          <Grid item xs={2}/>
+        </Grid>
       </div>
     )
   }

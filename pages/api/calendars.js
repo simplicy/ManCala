@@ -3,7 +3,7 @@ const {google} = require('googleapis');
 // place holder for the data
 const users = [];
 //------------------Functions----------------------------//
-
+var gClient;
 //More error logging needed
 async function getCalendarClient(){
   // Create a new JWT client using the key file downloaded from the Google Developer Console
@@ -22,13 +22,14 @@ async function getCalendarClient(){
 }
 
 async function getCalendarEvents(emails) {
-    const gClient = await getCalendarClient();
+    if(!gClient)
+        gClient = await getCalendarClient();
     //Check if the calendar is shared with the service account
     const eventList = await Promise.all(emails.map(async email =>{
         const response = await gClient.events.list({
             calendarId: email,
             timeMin: (new Date()).toISOString(),
-            maxResults: 5,
+            maxResults: 366,
             singleEvents: true,
             orderBy: 'startTime',
         });
@@ -57,12 +58,75 @@ const getEvents = async(req,res) => {
     }
 }
 
-const createAccount = async(req,res) => {
-    
+const createEvent = async(req,res) => {
+    if(!gClient)
+        gClient = await getCalendarClient();
+    console.log(req)
+    // var event = {
+    //     'summary': 'Google I/O 2015',
+    //     'location': '800 Howard St., San Francisco, CA 94103',
+    //     'description': 'A chance to hear more about Google\'s developer products.',
+    //     'start': {
+    //       'dateTime': '2015-05-28T09:00:00-07:00',
+    //       'timeZone': 'America/Los_Angeles',
+    //     },
+    //     'end': {
+    //       'dateTime': '2015-05-28T17:00:00-07:00',
+    //       'timeZone': 'America/Los_Angeles',
+    //     },
+    //     'attendees': [
+    //       {'email': 'lpage@example.com'},
+    //       {'email': 'sbrin@example.com'},
+    //     ],
+    //     'reminders': {
+    //       'useDefault': false,
+    //       'overrides': [
+    //         {'method': 'email', 'minutes': 24 * 60},
+    //         {'method': 'popup', 'minutes': 10},
+    //       ],
+    //     },
+    //   };
+    calendar.events.insert({
+        auth: auth,
+        calendarId: 'primary',
+        resource: event,
+      }, function(err, event) {
+        if (err) {
+          res.status(500).send({
+            success:false,
+            message:
+              err.message || "Some error occurred while deleting events."
+          });
+        }
+        res.status(200).send({
+            success:true,
+            message:
+              "Event sucessfully deleted!"
+          });
+      });
 } 
 
-const deleteAccount = async(req,res) => {
-    
+const deleteEvent = async(req,res) => {
+    if(!gClient)
+        gClient = await getCalendarClient();
+    try {
+        var event = req.query.id
+        var calendarId = req.query.account
+        var result = await gClient.events.delete({calendarId: calendarId, eventId: event,});
+        result;
+        res.status(200).send({
+            success: true,
+            message: "Event sucessfully deleted!",
+        })
+        
+    }  catch (error) {
+        res.status(500).send({
+            success:false,
+            message:
+              error.message || "Some error occurred while retrieving events."
+          });
+    }
+        
 }
 
 const updateAccount = async(req,res) => {
@@ -73,8 +137,8 @@ const updateAccount = async(req,res) => {
 const methods = {
     GET: getEvents,
     PUT: updateAccount,
-    POST: createAccount,
-    DELETE: deleteAccount,
+    POST: createEvent,
+    DELETE: deleteEvent,
 }
 
 

@@ -1,15 +1,16 @@
 // components/Layout.js
 import React, { Component } from 'react';
 import Head from './Head';
-import Footer from './Footer'
 import Header from './Header'
+import Spacer from './Spacer'
+
 export default function Layout({children}) {
     return (
       <div className='layout'>
         <Head />
         <Header />
         {children}
-        <Footer />
+        <Spacer />
       </div>
     );
 }
