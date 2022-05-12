@@ -54,7 +54,6 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
     const apiResponse = await (deleteEvent.json())
     
     toast(apiResponse.message)
-    reloadEvents();
     
     handleClose();
   }
@@ -73,6 +72,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
         city: document.getElementById("city").value,
         state: document.getElementById("state").value,
         zip: document.getElementById("zip").value,
+        color: payload.color,
     }
     console.log(preEditEvent)
     setEditing(true)
@@ -86,12 +86,12 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
     setEditing(false)
     setShowDelete(false)
     reset();
+    reloadEvents();
     onClose();
   };
 
   //Prefills modal content with data from Google calendar API
   const fillModalContent = () =>{
-    
     setValue("date",new Date(payload.start).toISOString().replace(/T.*/,'').split('-').join('-'));
     setValue("eventTitle", payload.title)
     setValue("details",payload.details);
@@ -117,6 +117,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
   }
   //submits form
   const onSubmit = async (data) => {
+    console.log(data)
     var crud;
     if(!data.organizer) data.organizer = payload.organizer;
     if(newEventMode && editing )crud = "new";
@@ -125,7 +126,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
       console.log(JSON.stringify(preEditEvent) === JSON.stringify(data))
     if(data){
       const newEventRequest = await fetch('http://localhost:3000/api/calendars/', {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -133,12 +134,11 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
       body: JSON.stringify(data)
       })
       const apiResponse = await (newEventRequest.json())
-      const calendars = apiResponse.data 
+      reloadEvents();
+      toast(apiResponse.message)
     }
-    
-    console.log(data)
-    reset();
     handleClose();
+    
   };
 
   //Loader condition for when the modal is shown

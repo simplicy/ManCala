@@ -35,7 +35,7 @@ const AccountList = ({accounts}) => {
                         { AllAccounts.length > 0 ? (
                         AllAccounts.filter(item => { return (item.name.toLowerCase().includes(searchQuery) || item.id.includes(searchQuery))}).map((acc, index) => (
                             <Grid item xs={6}>
-                                <a href={"/accounts/"+acc.id} style={{textDecoration:"none",color: "inherit"}}>
+                                <a onClick={()=>router.push("/accounts/"+acc.id)} style={{textDecoration:"none",color: "inherit"}}>
                                     <Card 
                                         id={index} 
                                         style={{padding:"10px", margin: "10px"}} 

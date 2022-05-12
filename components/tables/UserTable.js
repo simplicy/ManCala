@@ -224,7 +224,6 @@ const EnhancedTableToolbar = (props) => {
         const loggitJson = await loggit.json()
         if(loggitJson.success==true){
           setShowAdd(false)
-          router.reload(window.location.pathname);
         } 
       }
   }

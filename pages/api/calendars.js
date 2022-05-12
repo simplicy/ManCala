@@ -1,3 +1,5 @@
+import { interpolateAs } from 'next/dist/shared/lib/router/router';
+
 const path = require('path');
 const {google} = require('googleapis');
 // place holder for the data
@@ -29,7 +31,7 @@ async function getCalendarEvents(emails) {
         const response = await gClient.events.list({
             calendarId: email,
             timeMin: (new Date()).toISOString(),
-            maxResults: 366,
+            maxResults: 100,
             singleEvents: true,
             orderBy: 'startTime',
         });
@@ -42,6 +44,7 @@ async function getCalendarEvents(emails) {
 const getEvents = async(req,res) => {
     console.log("Getting Events")
     const emails = req.query.emails.split(",")
+    console.log(emails)
     try {
         const events = await getCalendarEvents(emails);
         res.status(200).send({
@@ -61,49 +64,46 @@ const getEvents = async(req,res) => {
 const createEvent = async(req,res) => {
     if(!gClient)
         gClient = await getCalendarClient();
-    console.log(req)
-    // var event = {
-    //     'summary': 'Google I/O 2015',
-    //     'location': '800 Howard St., San Francisco, CA 94103',
-    //     'description': 'A chance to hear more about Google\'s developer products.',
-    //     'start': {
-    //       'dateTime': '2015-05-28T09:00:00-07:00',
-    //       'timeZone': 'America/Los_Angeles',
-    //     },
-    //     'end': {
-    //       'dateTime': '2015-05-28T17:00:00-07:00',
-    //       'timeZone': 'America/Los_Angeles',
-    //     },
-    //     'attendees': [
-    //       {'email': 'lpage@example.com'},
-    //       {'email': 'sbrin@example.com'},
-    //     ],
-    //     'reminders': {
-    //       'useDefault': false,
-    //       'overrides': [
-    //         {'method': 'email', 'minutes': 24 * 60},
-    //         {'method': 'popup', 'minutes': 10},
-    //       ],
-    //     },
-    //   };
-    calendar.events.insert({
-        auth: auth,
-        calendarId: 'primary',
-        resource: event,
-      }, function(err, event) {
-        if (err) {
-          res.status(500).send({
+    var payload = req.body;
+    var locale = "";
+    if(payload.addr1)
+        locale = (payload.addr1 +', '+payload.city+', '+payload.state+' '+payload.zip);
+
+    var event = {
+        'summary': payload.eventTitle,
+        'location':  locale,
+        'description': payload.details,
+        'start': {
+          'dateTime': (new Date(Date.parse(payload.date+'T'+payload.startTime))),
+          'timeZone': 'America/New_York',
+        },
+        'end': {
+          'dateTime': (new Date(Date.parse(payload.date+'T'+payload.endTime))),
+          'timeZone': 'America/New_York',
+        },
+        'attendees': [],
+      };
+      if(payload.attendees){
+          var attn = payload.attendees.split("\n")
+          attn.map(item=>{
+              event.attendees.push({email:item})
+          })
+      }
+    try{   
+        var result = gClient.events.insert({calendarId: payload.organizer,resource: event,});
+        console.log(result)
+        res.status(200).send({
+            success: true,
+            message: "Event sucessfully added!",
+        })
+    } catch  (error) {
+        res.status(500).send({
             success:false,
             message:
-              err.message || "Some error occurred while deleting events."
+              error.message || "Some error occurred while retrieving events."
           });
-        }
-        res.status(200).send({
-            success:true,
-            message:
-              "Event sucessfully deleted!"
-          });
-      });
+    }
+   
 } 
 
 const deleteEvent = async(req,res) => {

@@ -77,8 +77,5 @@ export async function getServerSideProps(params) {
   })
   const apiResponse = await (api.json())
   const calendars = apiResponse.data || {}
-
   return { props: { account, calendars} }
 }
-
-

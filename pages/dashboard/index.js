@@ -20,7 +20,7 @@ export default function Home() {
         </h1>
 
         <div className={styles.row}>
-            <a onClick={()=>{router.push("/accounts")}} className={styles.card}>
+            <a onClick={()=>{router.push("/")}} className={styles.card}>
             <h2>All Accounts &rarr;</h2>
             <p>View a list of our client's calendars.</p>
             </a>

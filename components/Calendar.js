@@ -1,6 +1,6 @@
 
 import { Calendar, momentLocalizer } from "react-big-calendar";
-import { Card, Checkbox, Grid } from "@mui/material";
+import { Card, Checkbox, colors, Grid } from "@mui/material";
 import EventModal from "./modals/EventModal"
 import moment from "moment";
 import React, {useState, useEffect} from "react";
@@ -10,9 +10,19 @@ import { Toaster } from "react-hot-toast";
 import { useRouter } from 'next/router';
 const localizer = momentLocalizer(moment);
 
+var eventColors = []
 //Returns an array of events given an array of calendars from the google
 //calendar api and an array of selected accounts
 function getEvents(calendars, selected) {
+  console.log(eventColors)
+  const getColor = (email) => {
+    for(let i = 0; i<eventColors.length;i++){
+      if(email==eventColors[i].email){
+        return eventColors[i].color
+      }
+        
+    }    
+  }
   console.log(calendars)
   const newEvents = []
   try{
@@ -30,6 +40,8 @@ function getEvents(calendars, selected) {
       newCal.map(calendar=>{
           calendar.items.map(data=>{
             //converts googles dateTime to a valid date since date is
+            var eventColor = getColor(data.organizer.email);
+            //console.log(eventColor)
             if(data.start.date){
               newEvents.push({
                 eventID: data.id,
@@ -37,11 +49,13 @@ function getEvents(calendars, selected) {
                 date: (new Date(data.start.date)).toDateString(),
                 start: moment(data.start.date).toDate(),
                 end: moment(data.start.date).toDate(),
-                organizer: data.creator.email,
+                organizer: data.organizer.email,
                 allDay: true,
                 attendees: data.attendees,
                 details: data.description || "",
-                address: data.location || "",    
+                address: data.location || "",
+                color: eventColor,
+
               })
             }
             else{
@@ -51,11 +65,12 @@ function getEvents(calendars, selected) {
                 date: (new Date(data.start.dateTime)).toDateString(),
                 start: moment(data.start.dateTime).toDate(),
                 end: moment(data.end.dateTime).toDate(),
-                organizer: data.creator.email,
+                organizer: data.organizer.email,
                 allDay: false,
                 attendees: data.attendees,
                 details: data.description || "",
-                address: data.location || "",    
+                address: data.location || "",
+                color: eventColor,
               })
             }
           })
@@ -77,6 +92,7 @@ export default function BigCalendar({account, calendars}){
   const [showModal, setShowModal] = useState(false);
   const [selected, setSelected] = useState([]); 
   const [events, setEvents] = useState([]);
+  const [workingCals, setWorkingCals] = useState(calendars)
   const [newEvent, setNewEvent] = useState({
       date:"",
       startTime:"--:--",
@@ -92,10 +108,14 @@ export default function BigCalendar({account, calendars}){
     init == false){
     setInit(true)
     console.log("Reloaded")
+    let i = 0
     account.users.map(data=>{
+      console.log(i++)
+      if(eventColors.length<account.users.length)
+        eventColors.push({email:data.email,color:'#'+Math.floor(Math.random()*16777215).toString(16)})
       selected.push(data)
     })
-    setEvents(getEvents(calendars, selected));
+    setEvents(getEvents(workingCals, selected));
   }
 
   //When there is a select event this will show the editModal
@@ -107,22 +127,24 @@ export default function BigCalendar({account, calendars}){
   
   //Props for events in the calendar, can set styles from here
   const eventPropGetter = useCallback(
-    (event, start, end, isSelected) => ({
+    (event, color, end, isSelected) => ({
       ...(isSelected && {
         style: {
           backgroundColor: '#000',
         },
       }),
-      ...(moment(start).hour() < 12 && {
-        className: 'powderBlue',
-      }),
-      ...(event.title.includes('Meeting') && {
-        className: 'darkGreen',
-      }),
+      ...(!isSelected && {
+        style: {
+          backgroundColor: event.color,
+        },
+      })
     }),
     []
   )
 
+  //fetches the events again from google after they have been updated. 
+  //Could be cut out and made quicker by locally updating the events list
+  //Then the fetch is only done on initial load
   const reloadEvents = async () => {
     const userEmails = account.users.map(data =>{
       return data.email
@@ -136,7 +158,8 @@ export default function BigCalendar({account, calendars}){
       },
     })
     const apiResponse = await (api.json())
-    const newCals = apiResponse.data;
+    const newCals = await apiResponse.data;
+    setWorkingCals(newCals)
     setEvents(getEvents(newCals, selected));
   }
 
@@ -153,6 +176,7 @@ export default function BigCalendar({account, calendars}){
     setNewEvent(details)
     setShowModal(true);
   }
+
   //Handles the click of the Filter View, lets user select which accounts they want to have in their 
   //calendar view.
   const handleClick = (userRow) => {
@@ -176,8 +200,9 @@ export default function BigCalendar({account, calendars}){
       );
     }
     setSelected(newSelected);
-    setEvents(getEvents(calendars, newSelected));
+    setEvents(getEvents(workingCals, newSelected));
   };
+
   //Checkbox function to see if it is in the selected list or not. 
   const isSelected = (email) =>{
     const isSel = selected.find((data)=>{
@@ -193,39 +218,41 @@ export default function BigCalendar({account, calendars}){
     return (
         <div>
           <Toaster/>
-         <Grid container overflow="hidden" spacing={1}>
-         <Grid item xs={2}>
+         <Grid container  spacing={1}>
+         <Grid item  xs={2}>
          <h4 style={{padding:"10px", marginLeft: "10px"}}>Filter View</h4>
-         {account.users?.map((userRow, index) => {
-           const isItemSelected = isSelected(userRow.email)
-           return (
-            <Card key={index} style={{padding:"10px", margin: "10px"}}>
-              <Grid  container spacing={2} onClick={()=> handleClick(userRow)}>
-                <Grid item xs={6}>
-                  {userRow.name}
+         <div overflow="hidden" style={{maxHeight:"25rem", overflowY: "auto"}}>
+          {account.users?.map((userRow, index) => {
+            const isItemSelected = isSelected(userRow.email)
+            return (
+              <Card key={index} style={{padding:"10px", margin: "10px"}}>
+                <Grid  container spacing={2} onClick={()=> handleClick(userRow)}>
+                  <Grid item xs={6}>
+                    {userRow.name}
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Checkbox key={index} checked={isItemSelected} color="primary" />
+                  </Grid>
                 </Grid>
-                <Grid item xs={6}>
-                  <Checkbox key={index} checked={isItemSelected} color="primary" />
-                </Grid>
-              </Grid>
-            </Card>
-           )                          
-          })}
+              </Card>
+            )                          
+            })}
+         </div>
           </Grid>    
           <Grid item xs={10}>
 
             <Calendar
               defaultDate={moment().toDate()}
-              defaultView="week"
+              defaultView="month"
               drilldownView='day'
               views={['month','day','week']}
+              eventPropGetter={eventPropGetter}
               events={events}
               localizer={localizer}
               selectable={true}
               onSelectSlot={(slotInfo)=>{onSelectSlot(slotInfo)}}
               onSelectEvent={(event)=>{onSelectEvent(event)}}
               onDoubleClickEvent={(event)=>{onSelectEvent(event)}}
-              eventPropGetter={eventPropGetter}
               style={{ height: "30rem", width: "50rem" }}
             /> 
 
