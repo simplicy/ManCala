@@ -97,6 +97,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
     setValue("details",payload.details);
     setValue("startTime",(new Date(payload.start)).toTimeString().split(' ')[0]);
     setValue("endTime",(new Date(payload.end)).toTimeString().split(' ')[0]);
+    //makesure address is an address
     if(payload.address){
       var [addr1, city, stateZip, country] = payload.address.split(",")
       var [state, zip] = stateZip.substring(1).split(" ")

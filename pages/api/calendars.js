@@ -27,14 +27,25 @@ async function getCalendarEvents(emails) {
     if(!gClient)
         gClient = await getCalendarClient();
     //Check if the calendar is shared with the service account
+    var ourDate = new Date();
+    //Change it so that it is 7 days in the past.
+    var pastDate = ourDate.getDate() - 30;
+    ourDate.setDate(pastDate);
     const eventList = await Promise.all(emails.map(async email =>{
         const response = await gClient.events.list({
             calendarId: email,
-            timeMin: (new Date()).toISOString(),
-            maxResults: 100,
+            timeMin: ourDate.toISOString(),
+            maxResults: 200,
             singleEvents: true,
             orderBy: 'startTime',
-        });
+        }).catch(err =>{
+            console.log("No account found")
+            return ({
+                data:{
+                    summary: email,
+                    items: []
+                }                
+            })})
         //console.log(response)
         return response.data
     }))
@@ -44,7 +55,6 @@ async function getCalendarEvents(emails) {
 const getEvents = async(req,res) => {
     console.log("Getting Events")
     const emails = req.query.emails.split(",")
-    console.log(emails)
     try {
         const events = await getCalendarEvents(emails);
         res.status(200).send({

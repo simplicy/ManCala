@@ -10,7 +10,7 @@ const AccountList = ({accounts}) => {
         return item;
     });
     const handleSearch = (value) => {
-        setSearchQuery(value || "")
+        setSearchQuery(value.toLowerCase() || "")
     }
     
     return (

@@ -8,22 +8,21 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useCallback } from "react";
 import { Toaster } from "react-hot-toast";
 import { useRouter } from 'next/router';
+import { DisabledByDefault } from "@mui/icons-material";
 const localizer = momentLocalizer(moment);
 
 var eventColors = []
 //Returns an array of events given an array of calendars from the google
 //calendar api and an array of selected accounts
 function getEvents(calendars, selected) {
-  console.log(eventColors)
   const getColor = (email) => {
     for(let i = 0; i<eventColors.length;i++){
       if(email==eventColors[i].email){
         return eventColors[i].color
       }
-        
-    }    
+    }
+    return "darkgrey"
   }
-  console.log(calendars)
   const newEvents = []
   try{
     //check if any calendars are available
@@ -87,6 +86,7 @@ function getEvents(calendars, selected) {
 //Calendar view that will be exported by the module
 export default function BigCalendar({account, calendars}){
   const router = useRouter();
+  const [disabled, setDisabled] = useState([])
   const [newEventMode, setNewEventMode] = useState(false);
   const [init, setInit] = useState(false)
   const [showModal, setShowModal] = useState(false);
@@ -107,19 +107,26 @@ export default function BigCalendar({account, calendars}){
     !events.length && !selected.length && 
     init == false){
     setInit(true)
-    console.log("Reloaded")
-    let i = 0
     account.users.map(data=>{
-      console.log(i++)
       if(eventColors.length<account.users.length)
         eventColors.push({email:data.email,color:'#'+Math.floor(Math.random()*16777215).toString(16)})
       selected.push(data)
     })
+    calendars.map(cal =>{
+      console.log(cal)
+      if(cal.items.length==0){
+        disabled.push(cal.summary)
+        console.log(document.getElementById(cal.summary))
+      }
+    })
+    console.log(disabled)
     setEvents(getEvents(workingCals, selected));
   }
 
   //When there is a select event this will show the editModal
-  const onSelectEvent = data => { 
+  const onSelectEvent = data => {
+    //check to make sure that the event is one of the account users
+    console.log("selected")
     setNewEventMode(false);
     setNewEvent(data)
     setShowModal(true);
@@ -136,7 +143,12 @@ export default function BigCalendar({account, calendars}){
       ...(!isSelected && {
         style: {
           backgroundColor: event.color,
-        },
+        }}),
+      ...(event.color=="darkgrey" && {
+        style:{
+          backgroundColor:"darkgrey",
+          pointerEvents: "none"
+        }
       })
     }),
     []
@@ -162,7 +174,13 @@ export default function BigCalendar({account, calendars}){
     setWorkingCals(newCals)
     setEvents(getEvents(newCals, selected));
   }
-
+  const isDisabled = (email) =>{
+    for(let i=0;i<disabled.length;i++){
+      if(disabled[i] == email)
+        return true
+    }
+    return false
+  }
   //On selecting a slot, will pop open a modal with selected time data prefilled
   const onSelectSlot = data => {
     const momentStart = moment(data.start), 
@@ -182,7 +200,7 @@ export default function BigCalendar({account, calendars}){
   const handleClick = (userRow) => {
     var selectedIndex = -1
     selected.find((data, index)=>{
-      if(data.email === userRow.email){
+      if(data.email === userRow.email && document.getElementById(userRow.email)){
         selectedIndex = index
       }        
     });
@@ -216,7 +234,7 @@ export default function BigCalendar({account, calendars}){
    }
     //Return the calendar if events are not empty, else 
     return (
-        <div>
+        <>
           <Toaster/>
          <Grid container  spacing={1}>
          <Grid item  xs={2}>
@@ -224,14 +242,15 @@ export default function BigCalendar({account, calendars}){
          <div overflow="hidden" style={{maxHeight:"25rem", overflowY: "auto"}}>
           {account.users?.map((userRow, index) => {
             const isItemSelected = isSelected(userRow.email)
+            const isItemDisabled = isDisabled(userRow.email)
             return (
               <Card key={index} style={{padding:"10px", margin: "10px"}}>
-                <Grid  container spacing={2} onClick={()=> handleClick(userRow)}>
+                <Grid  container  spacing={2} onClick={()=> {if(!isDisabled(userRow.email)){handleClick(userRow)}}}>
                   <Grid item xs={6}>
                     {userRow.name}
                   </Grid>
                   <Grid item xs={6}>
-                    <Checkbox key={index} checked={isItemSelected} color="primary" />
+                    <Checkbox key={index} id={userRow.email} disabled={isItemDisabled} checked={isItemSelected} color="primary" />
                   </Grid>
                 </Grid>
               </Card>
@@ -267,7 +286,7 @@ export default function BigCalendar({account, calendars}){
           >
           </EventModal>    
           </Grid>
-        </div>
+        </>
     )
 }
 

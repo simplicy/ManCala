@@ -14,21 +14,16 @@ export default function AccoundID({account, calendars}) {
   //Returns this page if user is not signed in
   if(session){
     return (
-      <>
-          <main className={styles.main}>
-          <h1 className={styles.title}>
-              {account.name}
-          </h1>
-
-         
-            <Calendar
-              calendars={calendars}
-              account={account}
-              session={session}
-            />
-         
-          </main>
-      </>
+      <main className={styles.main}>
+        <h1 className={styles.title}>
+            {account.name}
+        </h1>
+        <Calendar
+          calendars={calendars}
+          account={account}
+          session={session}
+        />
+      </main>
     ) 
   }
   return (
@@ -77,5 +72,7 @@ export async function getServerSideProps(params) {
   })
   const apiResponse = await (api.json())
   const calendars = apiResponse.data || {}
+  
+  //console.log(apiResponse)
   return { props: { account, calendars} }
 }
