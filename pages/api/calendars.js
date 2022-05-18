@@ -71,14 +71,15 @@ const getEvents = async(req,res) => {
     }
 }
 
-const createEvent = async(req,res) => {
-    if(!gClient)
-        gClient = await getCalendarClient();
+const createEvent = async (req,res) => {
     var payload = req.body;
     var locale = "";
-    if(payload.addr1)
-        locale = (payload.addr1 +', '+payload.city+', '+payload.state+' '+payload.zip);
-
+    var address = payload.addr1;
+    if(payload.addr2 != "")
+        address = address+', '+payload.addr2;
+    if(payload.addr1 && payload.city && payload.state && payload.zip)
+        locale = (address+','+payload.city+', '+payload.state+' '+payload.zip);
+    console.log(payload)
     var event = {
         'summary': payload.eventTitle,
         'location':  locale,
@@ -99,13 +100,21 @@ const createEvent = async(req,res) => {
               event.attendees.push({email:item})
           })
       }
+    if(!gClient)
+        gClient = await getCalendarClient();
     try{   
-        var result = gClient.events.insert({calendarId: payload.organizer,resource: event,});
+        var result = await gClient.events.insert({calendarId: payload.organizer,resource: event,});
         console.log(result)
-        res.status(200).send({
-            success: true,
-            message: "Event sucessfully added!",
-        })
+        if(result.status==200)
+            res.status(200).send({
+                success: true,
+                message: "Event sucessfully created!",
+            })
+        else
+            res.status(500).send({
+                success: false,
+                message: "Some error occurred during the update process. Please try again later.",
+            })
     } catch  (error) {
         res.status(500).send({
             success:false,
@@ -123,12 +132,16 @@ const deleteEvent = async(req,res) => {
         var event = req.query.id
         var calendarId = req.query.account
         var result = await gClient.events.delete({calendarId: calendarId, eventId: event,});
-        result;
-        res.status(200).send({
-            success: true,
-            message: "Event sucessfully deleted!",
-        })
-        
+        if(result.status==204)
+            res.status(200).send({
+                success: true,
+                message: "Event sucessfully deleted!",
+            })
+        else
+            res.status(500).send({
+                success: false,
+                message: "Some error occurred during the delete process. Please try again later.",
+            })
     }  catch (error) {
         res.status(500).send({
             success:false,
@@ -139,14 +152,62 @@ const deleteEvent = async(req,res) => {
         
 }
 
-const updateAccount = async(req,res) => {
-
+const updateEvent = async(req,res) => {
+    var payload = req.body;
+    var locale = "";
+    var address = payload.addr1;
+    if(payload.addr2 != "")
+        address = address+', '+payload.addr2;
+    if(payload.addr1 && payload.city && payload.state && payload.zip)
+        locale = (address+','+payload.city+', '+payload.state+' '+payload.zip);
+    const eventID = req.query.eventId;
+    var event = {
+        'summary': payload.eventTitle,
+        'location':  locale,
+        'description': payload.details,
+        'start': {
+        'dateTime': (new Date(Date.parse(payload.date+'T'+payload.startTime))),
+        'timeZone': 'America/New_York',
+        },
+        'end': {
+        'dateTime': (new Date(Date.parse(payload.date+'T'+payload.endTime))),
+        'timeZone': 'America/New_York',
+        },
+        'attendees': [],
+    };
+    if(payload.attendees){
+        var attn = payload.attendees.split("\n")
+        attn.map(item=>{
+            event.attendees.push({email:item})
+        })
+    }
+    if(!gClient)
+        gClient = await getCalendarClient();
+    try{   
+        var result = await gClient.events.update({calendarId: payload.organizer,eventId: eventID, resource: event,});
+        if(result.status==200)
+            res.status(200).send({
+                success: true,
+                message: "Event sucessfully updated!",
+            })
+        else
+            res.status(500).send({
+                success: false,
+                message: "Some error occurred during the update process. Please try again later.",
+            })
+    } catch  (error) {
+        res.status(500).send({
+            success:false,
+            message:
+            error.message || "Some error occurred while updating the event."
+        });
+    }
 }
     
 
 const methods = {
     GET: getEvents,
-    PUT: updateAccount,
+    PUT: updateEvent,
     POST: createEvent,
     DELETE: deleteEvent,
 }

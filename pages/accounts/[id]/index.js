@@ -20,7 +20,7 @@ export default function AccoundID({account, calendars}) {
         </h1>
         <Calendar
           calendars={calendars}
-          account={account}
+          accountUserList={account}
           session={session}
         />
       </main>

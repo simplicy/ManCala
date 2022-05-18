@@ -20,7 +20,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
   const [showDelete, setShowDelete] = useState(false);
   const [editing, setEditing] = useState(false);
   const [organize, setOrganize] = useState("")
-  const [preEditEvent, setPreEdit] = useState("")
+  const [preEditEvent, setPreEdit] = useState({})
   const { register, reset, setValue, handleSubmit, control, formState: { errors } } = useForm({
     defaultValues:{
       eventTitle:"",
@@ -39,7 +39,6 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
 
   //On delete button event to show delete modal
   const showDeleteModal = async () => {setShowDelete(true)}
-
   //sends Event to be delete to google api
   const onDelete = async () => {
     reset()
@@ -60,7 +59,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
 
   //On Edit button event
   const onEdit = async (e) => {
-    preEditEvent = {
+    setPreEdit({
         eventTitle: document.getElementById("eventTitle").value,
         date:document.getElementById("date").value,
         startTime: document.getElementById("startTime").value,
@@ -69,25 +68,25 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
         attendees: document.getElementById("attendees").value,
         organizer: organize,
         addr1: document.getElementById("addr1").value,
+        addr2: document.getElementById("addr2").value,
         city: document.getElementById("city").value,
         state: document.getElementById("state").value,
         zip: document.getElementById("zip").value,
         color: payload.color,
-    }
-    console.log(preEditEvent)
+    })
     setEditing(true)
   }
   
 
   //Handles close for all event modal, handles options
   const handleClose = (e) => {
+    onClose();
     organize = ""
     editing = false;
     setEditing(false)
     setShowDelete(false)
     reset();
     reloadEvents();
-    onClose();
   };
 
   //Prefills modal content with data from Google calendar API
@@ -99,12 +98,19 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
     setValue("endTime",(new Date(payload.end)).toTimeString().split(' ')[0]);
     //makesure address is an address
     if(payload.address){
-      var [addr1, city, stateZip, country] = payload.address.split(",")
+      var [addr1, addr2, city, stateZip, country] = payload.address.split(",")
+      if(stateZip == null){
+        var [addr1, city, stateZip, country] = payload.address.split(",")
+        var addr2 = ""
+      }
       var [state, zip] = stateZip.substring(1).split(" ")
       setValue("addr1",addr1);
+      setValue("addr2",addr2);
       setValue("city",city)
       setValue("state",state)
       setValue("zip",zip)
+      console.log(stateZip)
+      console.log(country)
     }
     if(payload.attendees){
       var attList =""; 
@@ -118,33 +124,59 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
   }
   //submits form
   const onSubmit = async (data) => {
-    console.log(data)
-    var crud;
-    if(!data.organizer) data.organizer = payload.organizer;
-    if(newEventMode && editing )crud = "new";
-    else if(editing && !newEventMode)crud = "update"
-    if(crud=="update")
-      console.log(JSON.stringify(preEditEvent) === JSON.stringify(data))
-    if(data){
-      const newEventRequest = await fetch('http://localhost:3000/api/calendars/', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
-      })
-      const apiResponse = await (newEventRequest.json())
-      reloadEvents();
-      toast(apiResponse.message)
+    var method;
+    data.color = payload.color
+    //If data is missing organizer, add in the organizer from the event.
+    if(!data.organizer) {
+      data.organizer = payload.organizer;
     }
-    handleClose();
-    
+    //designate which method to use
+    if(newEventMode && editing ){
+      method = 'POST';
+    }
+    else if(editing && !newEventMode){
+      method = 'PUT';
+    }
+    if(data && method){
+      if(data.startTime > data.endTime){
+        toast("Invalid time selection.")
+      }
+      //verify that the event has had changes made to it else close modal
+      else if(JSON.stringify(preEditEvent) === JSON.stringify(data)){
+        toast("No changes made.")
+        handleClose();
+      }
+      else {
+        //Re-sets details value on modal, cosmetic fix for issue with changes disapearing before modal close.
+        //Event updates fine with or without this line
+        setValue("eventTitle", data.eventTitle)
+        setValue("details",data.details);
+        setValue("addr1",data.addr1);
+        setValue("addr2",data.addr2);
+        setValue("city",data.city)
+        setValue("state",data.state)
+        setValue("zip",data.zip)
+        console.log(data)
+        const newEventRequest = await fetch('http://localhost:3000/api/calendars/?eventId='+payload.eventID, {
+          method: method,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        })        
+        const apiResponse = await (newEventRequest.json())
+        toast(apiResponse.message)
+        handleClose();
+      }
+    }
+    else
+      handleClose();
   };
 
   //Loader condition for when the modal is shown
   if(newEventMode && show){
-    setValue("date",payload.date);
+    setValue("date",payload.date); 
     if((payload.start && payload.end) != "00:00" && "24:00"){
       setValue("startTime",payload.start);
       setValue("endTime",payload.end);
@@ -257,7 +289,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
                   variant="filled"
                   {...register("organizer")}                   
                 >
-                {account.users.map(item=>{
+                {account.map(item=>{
                   return (
                     <MenuItem value={item.email}>
                       {item.email}
@@ -295,6 +327,19 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
               color="primary"
               type="text"
               {...register("addr1")} 
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              control={control}
+              disabled={!editing}
+              label="Address 2"
+              id="addr2"
+              variant="filled"
+              sx={{ width: "100%" }}
+              color="primary"
+              type="text"
+              {...register("addr2")} 
             />
           </Grid>
           <Grid item xs={4}>
