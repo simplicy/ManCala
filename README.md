@@ -35,9 +35,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Usage
 
-To start managing calendars, the client (user whos calendar is to be managed) should share their desired calendar to your service account email with editing access. Once that is done, you can create an "Account" or Group in the Dashboard. Once an Account is created you can add users to it. The users will be the individuals who shared their calendars to the service account. You can group as many users and have the same users in multiple accounts. 
+To start managing calendars, the client (user whos calendar is to be managed) should share their desired calendar to your service account email with editing access. Once that is done, you can create an "Account" or Group in the Dashboard. Once an Account is created you can add client to it. The client will be the individuals who shared their calendars to the service account. You can group as many client and have the same users in multiple accounts. 
 
-The users logging into the interface will use their domain google account to login to the interface. Once on the homepage they can go to any created account and start managing those users calendar events. They can update, delete, and create new events using the service account as a middleman. No need to share passwords or share a calendar to several people. 
+The users logging into the interface will use their domain google account. Once on the homepage they can go to any created account and start managing client calendars. They can update, delete, and create new events using the service account as a middle-man. No need to share passwords or have everyone share their calendar to several people. 
 
 ## Known Issues
 
