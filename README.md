@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with MUI (Material UI).
+This is a [Next.js](https://nextjs.org/) project bootstrapped with MUI (Material UI). (This is still a work in progress) 
 
 ## Getting Started
 
