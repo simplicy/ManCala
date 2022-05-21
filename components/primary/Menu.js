@@ -8,21 +8,46 @@ import KeyboardArrowUp from '@mui/icons-material/KeyboardArrowUp';
 import { IconButton } from '@mui/material';
 import { useRouter } from 'next/router';
 
-export default function UserMenu() {
+export default function UserMenu({}) {
   const router = useRouter()
   const { data: session } = useSession()
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-  const isAdmin = true;
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  if(session){
+  const isAdmin = async () => {
+    var result = false;
+    if(session){
+      const db = await fetch('http://localhost:3000/api/admins/', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+      })
+      console.log(session)
+      const dbResponse = await (db.json())
+      dbResponse.data.map(data => {
+        if(data.email == session.user.email){
+          result = true;
+          return true;
+        }
+      })
+    }
+    return result;
+  }
+  var admin = isAdmin();
+  console.log(admin)
+  if(session && (admin == true || admin == false)){
+    
     return (
+      
         <>
             <Tooltip title="Menu">
               <IconButton
@@ -47,10 +72,46 @@ export default function UserMenu() {
             }}
           >
             <MenuItem>Signed in as <br/>{session.user.email.substring(0,session.user.email.indexOf("@"))}</MenuItem>            
-            {isAdmin ? <MenuItem onClick={()=>{router.push("/dashboard"); handleClose()}}>Dashboard</MenuItem>: <></> }
+            {admin==true ? 
+              <MenuItem onClick={()=>{router.push("/dashboard"); handleClose()}}>
+                Dashboard
+              </MenuItem>
+              :
+              <></>
+              
+            }
             <MenuItem onClick={() => {signOut(); handleClose()}}>Logout</MenuItem>
           </Menu>
         </>
       );
   }
+  return (
+    <>
+        <Tooltip title="Menu">
+          <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="basic-menu"
+          sx={{ mr: 2 }}
+          aria-haspopup="true"
+          aria-expanded={open ? 'true' : undefined}
+          onClick={handleClick}
+          >
+            {open ? <KeyboardArrowUp style={{fill: "white"}} fontSize='large'/> : <MenuIcon style={{fill: "white"}} fontSize='large'/>}
+          </IconButton>
+        </Tooltip>   
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        MenuListProps={{
+          'aria-labelledby': 'basic-button',
+        }}
+      >
+        <MenuItem>Signed in as <br/>{session.user.email.substring(0,session.user.email.indexOf("@"))}</MenuItem>            
+        <MenuItem onClick={() => {signOut(); handleClose()}}>Logout</MenuItem>
+      </Menu>
+    </>
+  );
 }

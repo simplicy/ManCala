@@ -302,7 +302,7 @@ const EventModal = ({show, onClose, payload, title, newEventMode, account, reloa
             <Grid item xs={12}>
               <TextField 
                 control={control}
-                disabled={!editing} 
+                disabled={true} 
                 label="Attendee Emails"
                 color="primary"
                 id="attendees"
