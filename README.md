@@ -5,8 +5,6 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with MUI (Material
 First, install the dependencies:
 
 ```bash
-npm install
-# or
 yarn i
 ```
 You will need to add the following to your .env file in order to start development.
@@ -26,8 +24,6 @@ For the backend, you will need a google service account and credentials for it. 
 
 Finally, run the development server
 ```bash
-npm run dev
-# or
 yarn run dev
 ```
 
