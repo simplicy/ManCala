@@ -24,16 +24,9 @@ export default function UserMenu({}) {
   const isAdmin = async () => {
     var result = false;
     if(session){
-      const db = await fetch('http://localhost:3000/api/admins/', {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-      })
-      console.log(session)
-      const dbResponse = await (db.json())
-      dbResponse.data.map(data => {
+      //This is bad, but will be changed once the DB lookup is fixed
+      var admins = ["dana.thomas@cmscom.co","sean.hopkins@cmscom.co","rbensman@cmscom.co","ratchetclnk55@gmail.com"]
+      admins.map(data => {
         if(data.email == session.user.email){
           result = true;
           return true;
