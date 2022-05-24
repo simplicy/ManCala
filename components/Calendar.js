@@ -173,7 +173,7 @@ export default function BigCalendar({ accountUserList, calendars }) {
       return data.email
     }).join(",")
 
-    const api = await fetch(process.env.DB_URL+'/api/calendars/?emails=' + userEmails, {
+    const api = await fetch('http://localhost:3000/api/calendars/?emails=' + userEmails, {
       method: 'GET',
       headers: {
         Accept: 'application/json',
