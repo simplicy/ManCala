@@ -20,24 +20,20 @@ export default function UserMenu({}) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  const isAdmin = async () => {
-    var result = false;
-    if(session){
-      //This is bad, but will be changed once the DB lookup is fixed
-      var admins = ["dana.thomas@cmscom.co","sean.hopkins@cmscom.co","rbensman@cmscom.co","ratchetclnk55@gmail.com"]
-      admins.map(data => {
-        if(data.email == session.user.email){
-          result = true;
-          return true;
-        }
-      })
-    }
-    return result;
+  const [admin, setAdmin] = useState(false)
+  if(session){
+    //This is bad, but will be changed once the DB lookup is fixed
+    var admins = ["dana.thomas@cmscom.co","sean.hopkins@cmscom.co","rbensman@cmscom.co","ratchetclnk55@gmail.com"]
+    admins.map(data => {
+      console.log(data == session.user.email)
+      if(data == session.user.email){
+        admin = true
+        return;
+      }
+    })
   }
-  var admin = isAdmin();
-  console.log(admin)
-  if(session && (admin == true || admin == false)){
+  
+  if(session && (admin == true)){
     
     return (
       
@@ -65,7 +61,7 @@ export default function UserMenu({}) {
             }}
           >
             <MenuItem>Signed in as <br/>{session.user.email.substring(0,session.user.email.indexOf("@"))}</MenuItem>            
-            {admin==true ? 
+            {admin ? 
               <MenuItem onClick={()=>{router.push("/dashboard"); handleClose()}}>
                 Dashboard
               </MenuItem>

@@ -2,32 +2,22 @@ import styles from '../../styles/custom.module.css'
 import { useSession } from "next-auth/react"
 import Mongo from '../../lib/Mongo'
 import LogTable from '../../components/tables/LogTable'
+import { useState } from 'react'
 
-export default function admins({accounts: logList}) {
+export default function Logs({accounts: logList}) {
   const { data: session, status } = useSession();
-  const isAdmin = true;
-  //When the top most checkbox is checked, will check all entries in the table
-  const onCheckAll = (checked) => {
-    var checkboxes = document.querySelectorAll("input[type='checkbox']");
-    if (checked === true) {
-        for(var n=0;n<checkboxes.length;n++)
-          checkboxes[n].checked=true
-    }
-    if(checked == false){
-      for(var n=0;n<checkboxes.length;n++)
-          checkboxes[n].checked=false
-    }
+  const [admin, setAdmin] = useState(false)
+  if(session){
+    //This is bad, but will be changed once the DB lookup is fixed
+    var admins = ["dana.thomas@cmscom.co","sean.hopkins@cmscom.co","rbensman@cmscom.co","ratchetclnk55@gmail.com"]
+    admins.map(data => {
+      console.log(data == session.user.email)
+      if(data == session.user.email){
+        admin = true
+        return;
+      }
+    })
   }
-  //Checks the checkbox if the row is clicked
-  const onCheck = (e,index) => {
-    var checkbox = document.querySelectorAll("input[type='checkbox']")[index+1];
-    if (checkbox.checked)
-      checkbox.checked = false
-    else if (!checkbox.checked)
-      checkbox.checked = true
-    
-  }
-
   //If session is there, or user is signed in will serve them this page. 
   if (status === "loading") {
     return (
@@ -36,7 +26,7 @@ export default function admins({accounts: logList}) {
   }
   //Returns this page if user is signed in
   //Displays a table of the account database, to edit and manipulate from here
-  if(session && isAdmin){
+  if(session && admin==true){
     return (
       <div className={styles.container}>
           <main className={styles.main}>
@@ -56,7 +46,7 @@ export default function admins({accounts: logList}) {
             Access Denied!
         </h1>
         <div className={styles.grid}>
-            <h2>Please Sign in using your company email to continue. &rarr;</h2>
+            <h2>You must be an administrator to access this page &rarr;</h2>
         </div>        
       </main>
     </div>

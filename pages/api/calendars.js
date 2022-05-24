@@ -20,6 +20,8 @@ async function getCalendarClient(){
     version: 'v3',
     auth: client,
   });
+  console.log(calendarClient)
+  console.log("heelo")
   return calendarClient;
 }
 
@@ -46,7 +48,7 @@ async function getCalendarEvents(emails) {
                     items: []
                 }                
             })})
-        //console.log(response)
+        console.log(response)
         return response.data
     }))
     return eventList
@@ -57,6 +59,7 @@ const getEvents = async(req,res) => {
     const emails = req.query.emails.split(",")
     try {
         const events = await getCalendarEvents(emails);
+        console.log("Hello")
         res.status(200).send({
             success: true,
             data: events,

@@ -73,6 +73,6 @@ export async function getServerSideProps(params) {
   const apiResponse = await (api.json())
   const calendars = apiResponse.data || {}
   
-  //console.log(apiResponse)
+  console.log(apiResponse)
   return { props: { account, calendars} }
 }

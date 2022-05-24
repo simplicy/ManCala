@@ -1,6 +1,6 @@
 import NextAuth from "next-auth/next";
 import GoogleProvider from 'next-auth/providers/google'
-
+var nextAuth;
 const options = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
@@ -12,4 +12,4 @@ const options = {
   ],
 }
 
-export default (req, res) => NextAuth(req, res, options)
+export default nextAuth = (req, res) => NextAuth(req, res, options)
