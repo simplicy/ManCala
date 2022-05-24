@@ -20,7 +20,7 @@ export default function UserMenu({}) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const [admin, setAdmin] = useState(false)
+  var [admin, setAdmin] = useState(false)
   if(session){
     //This is bad, but will be changed once the DB lookup is fixed
     var admins = ["dana.thomas@cmscom.co","sean.hopkins@cmscom.co","rbensman@cmscom.co","ratchetclnk55@gmail.com"]
